@@ -1,0 +1,118 @@
+#pragma once
+#include "cocos2d.h"
+#include <cmath>
+#include <vector>
+#include <string>
+#define maxpositionarray 15//路径坐标数组存放最大坐标点数
+#define down 0//地面敌人
+#define up 1//空中敌人
+#define phisical 0//物伤敌人
+#define magical 1//法伤敌人
+#define left 1
+#define right 2
+
+typedef enum {
+	enemyStateNone = 0, //无状态
+	enemyStateIdle,
+	enemyStateAttack,
+	enemyStateMove,
+	enemyStateDie
+}EnemyState;
+
+//考虑到阻挡因素，实际action时起始点不一定在路径拐点上，故需根据实际像素坐标差、理论像素坐标差、理论格子数计算该动作实际格子数
+#define realSquareNum(realXY,theoryRealXY,theorySquareNum) static_cast<float>(std::sqrt((static_cast<double>(realXY.x)*realXY.x+static_cast<double>(realXY.y)*realXY.y)/(static_cast<double>(theoryRealXY.x)*theoryRealXY.x+static_cast<double>(theoryRealXY.y)*theoryRealXY.y)*(static_cast<double>(theorySquareNum.x)*theorySquareNum.x+static_cast<double>(theorySquareNum.y)*theorySquareNum.y)))
+//获得当前移动方向，从而调用不同方向的动作
+#define getDirection(xNow,xNext) xNow>=xNext?(left):(right)
+
+#define CREATE_SPIRITE(__TYPE__) \
+static __TYPE__* create(const char *filename) \
+{ \
+    __TYPE__ *pRet = new(std::nothrow) __TYPE__(); \
+    if (pRet && pRet->initWithFile(filename)) \
+    { \
+        pRet->autorelease(); \
+        return pRet; \
+    } \
+    else \
+    { \
+        delete pRet; \
+        pRet = nullptr; \
+        return nullptr; \
+    } \
+}
+
+USING_NS_CC;
+
+#ifndef __ENEMY_H__
+#define __ENEMY_H__
+
+class Enemy : public cocos2d::Sprite
+{
+public:
+	virtual bool initWithFile(const char* filename);
+	void initAnimation();
+
+	//赋予对象移动路径
+	void getPositionArray(Vec2 a[maxpositionarray],Vec2 b[maxpositionarray]);
+	//获得动画
+	Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit);
+	void loadingBlood();
+
+	void bloodUpdate(float dt);
+	void positionUpdate(float dt);
+	void positionXYUpdate(float dt);
+	void stateUpdate(float dt);
+	void update(float dt);
+	
+	//移动坐标点数组（实际像素坐标）
+	Vec2 positionArray[maxpositionarray] = {}; 
+	//路线所属格子xy坐标
+	Vec2 positionXYArray[maxpositionarray] = {};
+	//数组中实际存放点数（计数从0开始）、当下已经过的点数
+	int pointNum = -1, pointNow;
+	//当下所处实际xy格子坐标
+	std::vector<Vec2> positionXYNow;
+	//当下所处实际像素位置坐标
+	Vec2 positionNow;
+protected:
+	std::string name;
+	//最大生命值、攻、所需阻挡数（重量）、攻击速度、法伤/物伤
+	int healthMAX, attrack, blockNumber, attrackSpeed, damageType;
+	//移动速度、攻击间隔
+	float moveSpeed, attrackInterval;
+	//是否被阻挡,移动	
+	bool isblocked = false, ismoving = false;
+	//动作
+	Animation* attack1, *attack2, *move1, *move2, *idle1, *idle2, *die1, *die2;
+	//帧数
+	int attackNum, moveNum, idleNum, dieNum;
+	CC_SYNTHESIZE(int, health, Health);//当前生命值
+	CC_SYNTHESIZE(int, defend, Defend);//防
+	CC_SYNTHESIZE(int, magicDefend, MagicDefend);//法抗
+	CC_SYNTHESIZE(int, positionType, PositionType);//地面/高台
+	CC_SYNTHESIZE(EnemyState, lastState, LastState);
+	CC_SYNTHESIZE(EnemyState, presentState, PresentState);
+	CC_SYNTHESIZE(bool, isadded, Isadded);//是否被添加到地图
+};
+
+class shibing :public Enemy
+{
+public:
+	static shibing* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(shibing);
+	void update(float dt);
+private:
+	
+};
+
+class yuanshichong :public Enemy
+{
+public:
+	static yuanshichong* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(yuanshichong);
+	void update(float dt);
+};
+
+#endif
