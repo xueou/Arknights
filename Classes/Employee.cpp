@@ -225,6 +225,8 @@ bool Employee::searchEnemy()
     {
         case DANFA:
             return this->searchEnemyByType(danfa[direction0],danfaRange);
+        case ZHONGZHUANG:
+            return this->searchEnemyByType(zhongzhuang[direction0], zhongzhuangRange);
     }
     return false;
 }
@@ -293,6 +295,8 @@ int Employee::getEmployeeListType()                /***************记得补全*****
 {
     if (name == "aiyafala")
         return 1;
+    else if (name == "xingxiong")
+        return 2;
 }
 
 void Employee::addSkillList()
@@ -305,9 +309,13 @@ void Employee::addSkillList()
 
     auto _addSkillListListener = EventListenerTouchOneByOne::create();
     _addSkillListListener->setSwallowTouches(true);
-    _addSkillListListener->onTouchBegan = [=](Touch* touch, Event* event)
+    _addSkillListListener->onTouchBegan = [p,this](Touch* touch, Event* event)
     {       
-        return true; 
+        if (Rect(this->getPosition().x - p->getContentSize().width / 2.0f, this->getPosition().y - p->getContentSize().height / 2.0f,
+            p->getContentSize().width, p->getContentSize().height).containsPoint(touch->getLocation()))
+            return true;
+        else
+            return false;
     };
     _addSkillListListener->onTouchEnded = [this](Touch* touch, Event* event)
     {
@@ -651,11 +659,11 @@ void Aiyafala::skill()
     auto animation = Sequence::create(animation1, animation2, animation3, nullptr);
     this->runAction(animation);
 
-    schedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillSPUpdate),0.1875f);
+    schedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillSPUpdate), skillTime/static_cast<float>(spMAX));
     schedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillAttrackUpdate), attrackInterval);
     schedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillHealthUpdate));
 
-    scheduleOnce(CC_SCHEDULE_SELECTOR(Aiyafala::skillOverUpdate),15.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(Aiyafala::skillOverUpdate),skillTime);
 }
 
 void Aiyafala::update(float dt)
@@ -681,7 +689,21 @@ void Aiyafala::skillHealthUpdate(float dt)
     {
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
-        this->runAction(animation);
+        auto callbackDie = CallFunc::create([this]() {
+            auto map = dynamic_cast<MapScene*>(this->getParent());
+            this->removeFromParent();
+            auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
+            auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
+
+            map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
+            /*******************再部署时间******************/
+            employeelist->reputtingLoading();
+
+            employeelist->setOpacity(100);
+            employeelist->setIsadded(false);
+            employeelist->setReputNum(employeelist->getReputNum() + 1);
+            });
+        this->runAction(Sequence::create(animation, callbackDie, nullptr));
     }
 }
 
@@ -712,4 +734,175 @@ void Aiyafala::skillOverUpdate(float dt)
     schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     scheduleUpdate();
     
+}
+
+
+
+bool Xingxiong::initWithFile(const char* filename)
+{
+    if (!Employee::initWithFile(filename))
+    {
+        return false;
+    }
+    /************基础数据初始化*********/
+    name = "xingxiong";
+    healthMAX = 3850;
+    health = 3850;
+    spMAX = 50;
+    sp = 30;
+    attrack = 490;
+    defend = 813;
+    magicDefend = 0;
+    blockNumber = 3;
+    remainBlockNumber = 3;
+    attrackNumber = 1;
+    attrackSpeed = 100;
+    attrackRange = ZHONGZHUANG;
+    attrackInterval = 1.2f;
+    skillTime = 25.0f;
+    positionType = down;
+    damageType = phisical;
+    selectedType = down;
+    attackNum = 38;
+    dieNum = 28;
+    idleNum = 86;
+    startNum = 14;
+    attackReachNum = 30;
+    //技能参数不同干员需要哪些单独初始化
+    beforeskillNum = 19;
+    duringskillNum = 13;
+    afterskillNum = 6;
+    /***********************************/
+
+    initAnimation();
+
+    schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    scheduleUpdate();
+
+    return true;
+}
+
+Xingxiong* Xingxiong::createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY)
+{
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    auto p = Xingxiong::create(filename);
+
+    p->setDirection0(direction0);
+    p->setPosition(Vec2(origin.x, origin.y) + position);
+    p->positionXY = positionXY;
+
+    p->initSkillAnimation();
+    p->addSkillList();
+
+    return p;
+}
+
+void Xingxiong::initSkillAnimation()
+{
+    this->beforeskill1 = Employee::createAnimate(1, name.c_str(), "beforeskill", beforeskillNum, 1, 0.04f);
+    this->beforeskill2 = Employee::createAnimate(2, name.c_str(), "beforeskill", beforeskillNum, 1, 0.04f);
+    this->duringskill1 = Employee::createAnimate(1, name.c_str(), "duringskill", duringskillNum, 23, 0.08f);
+    this->duringskill2 = Employee::createAnimate(2, name.c_str(), "duringskill", duringskillNum, 23, 0.08f);
+    this->afterskill1 = Employee::createAnimate(1, name.c_str(), "afterskill", afterskillNum, 1, 0.04f);
+    this->afterskill2 = Employee::createAnimate(2, name.c_str(), "afterskill", afterskillNum, 1, 0.04f);
+    beforeskill1->retain();
+    beforeskill2->retain();
+    duringskill1->retain();
+    duringskill2->retain();
+    afterskill1->retain();
+    afterskill2->retain();
+}
+
+
+void Xingxiong::skill()
+{
+    unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    unscheduleUpdate();
+
+    attrack = 1176;
+    attrackNumber = 20;
+    defend = 1544;
+    this->stopAllActions();
+    auto animation1 = Animate::create((direction0 == left || direction0 == front) ? (beforeskill1) : (beforeskill2));
+    auto animation2 = Animate::create((direction0 == left || direction0 == front) ? (duringskill1) : (duringskill2));
+    auto animation3 = Animate::create((direction0 == left || direction0 == front) ? (afterskill1) : (afterskill2));
+    auto animation = Sequence::create(animation1, animation2, animation3, nullptr);
+    this->runAction(animation);
+
+    schedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillSPUpdate), skillTime / static_cast<float>(spMAX));
+    schedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillAttrackUpdate), attrackInterval);
+    schedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillHealthUpdate));
+
+    scheduleOnce(CC_SCHEDULE_SELECTOR(Xingxiong::skillOverUpdate), skillTime);
+}
+
+void Xingxiong::update(float dt)
+{
+    Employee::update(dt);
+}
+
+void Xingxiong::skillSPUpdate(float dt)
+{
+    if (sp > 0)
+        sp--;
+}
+
+void Xingxiong::skillAttrackUpdate(float dt)
+{
+    if (searchEnemyByType(lizhiju[direction0], lizhijuRange))
+        attrackSelectedEnemy();
+}
+
+void Xingxiong::skillHealthUpdate(float dt)
+{
+    if (health <= 0)
+    {
+        this->stopAllActions();
+        auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
+        auto callbackDie = CallFunc::create([this]() {
+            auto map = dynamic_cast<MapScene*>(this->getParent());
+            this->removeFromParent();
+            auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
+            auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
+
+            map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
+            /*******************再部署时间******************/
+            employeelist->reputtingLoading();
+
+            employeelist->setOpacity(100);
+            employeelist->setIsadded(false);
+            employeelist->setReputNum(employeelist->getReputNum() + 1);
+            });
+        this->runAction(Sequence::create(animation, callbackDie, nullptr));
+    }
+}
+
+void Xingxiong::skillOverUpdate(float dt)
+{
+    attrack = 490;
+    attrackNumber = 1;
+    defend = 813;
+
+    unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillSPUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillAttrackUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillHealthUpdate));
+
+    beforeskill1->release();
+    beforeskill2->release();
+    duringskill1->release();
+    duringskill2->release();
+    afterskill1->release();
+    afterskill2->release();
+
+    lastState = employeeStateIdle;
+    presentState = employeeStateIdle;
+    auto animation = Animate::create((direction0 == left || direction0 == front) ? (idle1) : (idle2));
+    animation->setTag(employeeStateIdle);
+    this->runAction(animation);
+
+    schedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate), 1.0f);
+    schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    scheduleUpdate();
+
 }

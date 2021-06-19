@@ -3,6 +3,7 @@
 #include"MapInformation.h"
 
 #define aiyafala 1
+#define xingxiong 2
 
 #define CREATE_SPIRITE(__TYPE__) \
 static __TYPE__* create(const char *filename) \
@@ -284,9 +285,13 @@ void employeeList<T>::reputtingLoading()
     reput0->setAnchorPoint(Vec2::ZERO);
     auto _reputListener = EventListenerTouchOneByOne::create();
     _reputListener->setSwallowTouches(true);
-    _reputListener->onTouchBegan = [=](Touch* touch, Event* event)
+    _reputListener->onTouchBegan = [reput0,this](Touch* touch, Event* event)
     {
-        return true;
+        if (Rect(this->getPosition().x, this->getPosition().y,
+            reput0->getContentSize().width, reput0->getContentSize().height).containsPoint(touch->getLocation()))
+            return true;
+        else
+            return false;
     };
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_reputListener, reput0);
     this->addChild(reput0,1,1);
@@ -312,6 +317,12 @@ void employeeList<T>::employeeCreate(int direction0, Vec2 position, Vec2 positio
             aiyafala0->setAnchorPoint(Vec2(0.5f, 0.25f));
             MapInformation::getInstance()->allEmployeeInMap.pushBack(aiyafala0);
             mapscene->addChild(aiyafala0); }
+            break;
+        case xingxiong: {
+            auto xingxiong0 = Xingxiong::createSprite(StringUtils::format(".\\employee\\xingxiong\\xingxiong%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
+            xingxiong0->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEmployeeInMap.pushBack(xingxiong0);
+            mapscene->addChild(xingxiong0); }
             break;
     }
     mapscene->setRemainPuttingNumber(mapscene->getRemainPuttingNumber() - 1);

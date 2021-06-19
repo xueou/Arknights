@@ -15,6 +15,7 @@
 #define Back 4
 
 #define DANFA 1
+#define ZHONGZHUANG 2
 
 #define getLength(vec) static_cast<float>(std::sqrt(static_cast<double>(vec.x)*vec.x+static_cast<double>(vec.y)*vec.y))
 
@@ -113,6 +114,23 @@ public:
     void skill();
 
     CREATE_SPIRITE(Aiyafala);
+    void update(float dt);
+
+    void skillSPUpdate(float dt);
+    void skillAttrackUpdate(float dt);
+    void skillHealthUpdate(float dt);
+    void skillOverUpdate(float dt);
+};
+
+class Xingxiong :public Employee
+{
+public:
+    static Xingxiong* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Xingxiong);
     void update(float dt);
 
     void skillSPUpdate(float dt);
