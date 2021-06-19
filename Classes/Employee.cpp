@@ -15,6 +15,8 @@ bool Employee::initWithFile(const char* filename)
     loadingSP();
     schedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate),1.0f);
 
+    schedule(CC_SCHEDULE_SELECTOR(Employee::blockUpdate));
+
     return true;
 }
 
@@ -231,6 +233,69 @@ bool Employee::searchEnemy()
     return false;
 }
 
+void Employee::searchForBlock()
+{
+    if (remainBlockNumber > 0)
+    {
+        Vector<Enemy*> temporary;
+        for (Enemy* enemy0 : MapInformation::getInstance()->allEnemyInMap)
+        {
+            if (enemy0->getIsadded() == true && enemy0->getIsblocked()==false)
+            {
+                if (enemy0->getPositionType() == this->blockedType || this->blockedType == upanddown)
+                {
+                    for (Vec2 p : enemy0->positionXYNow)
+                    {
+                        if (this->positionXY == p)
+                        {
+                            if (remainBlockNumber >= enemy0->getBlockNumber())
+                            {
+                                temporary.pushBack(enemy0);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (temporary.size() != 0)
+        {
+            float length = 3000.0f;
+            int deltaPoint = 100;
+            int index;
+            for (Enemy* m : temporary)
+            {
+                if ((m->pointNum - m->pointNow) < deltaPoint || ((m->pointNum - m->pointNow) == deltaPoint && getLength((m->positionArray[m->pointNow + 1] - m->getPosition())) < length))
+                {
+                    length = getLength((m->positionArray[m->pointNow + 1] - m->getPosition()));
+                    deltaPoint = m->pointNum - m->pointNow;
+                    index = temporary.getIndex(m);
+                }
+            }
+
+            blockedEnemy.pushBack(temporary.at(index));
+            temporary.at(index)->setIsblocked(true);
+            temporary.at(index)->isBlockedBy = this;
+            remainBlockNumber -= temporary.at(index)->getBlockNumber();
+        }
+    }
+}
+
+void Employee::deleteBlockedEnemy(Enemy* m)
+{
+    blockedEnemy.eraseObject(m);
+}
+
+void Employee::releaseAllBlockedEnemy()
+{
+    for (Enemy* m : blockedEnemy)
+    {
+        m->setIsblocked(false);
+        m->isBlockedBy = NULL;
+    }
+}
+
 bool Employee::searchEnemyByType(Vec2 range[12], int rangeNum)
 {
     this->selectedEnemy.clear();
@@ -381,6 +446,7 @@ void Employee::addSkillList()
                 map->removeChildByTag(203);
                 map->removeChildByTag(204);
                 /***********************干员 撤退*****************************/
+                this->releaseAnimation();
                 this->removeFromParent();
                 auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
                 auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
@@ -390,6 +456,8 @@ void Employee::addSkillList()
                 map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
                 /*******************再部署时间******************/
                 employeelist->reputtingLoading();
+
+                releaseAllBlockedEnemy();//释放阻挡敌人
 
                 employeelist->setOpacity(100);
                 employeelist->setIsadded(false);
@@ -462,6 +530,11 @@ void Employee::bloodUpdate(float dt)
 {
     auto progress = (ProgressTimer*)this->getChildByTag(50);
     progress->setPercentage((static_cast<float>(health) / healthMAX) * 100);
+}
+
+void Employee::blockUpdate(float dt)
+{
+    this->searchForBlock();
 }
 
 void Employee::stateUpdate(float dt)
@@ -541,6 +614,7 @@ void Employee::update(float dt)
                 auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
                 auto callbackDie = CallFunc::create([this]() {
                     auto map = dynamic_cast<MapScene*>(this->getParent());
+                    this->releaseAnimation();
                     this->removeFromParent();
                     auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
                     auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
@@ -548,6 +622,8 @@ void Employee::update(float dt)
                     map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
                     /*******************再部署时间******************/
                     employeelist->reputtingLoading();
+
+                    releaseAllBlockedEnemy();//释放阻挡敌人
 
                     employeelist->setOpacity(100);
                     employeelist->setIsadded(false);
@@ -566,6 +642,9 @@ void Employee::update(float dt)
         lastState = presentState;
     }
 }
+
+
+
 
 bool Aiyafala::initWithFile(const char* filename)
 {
@@ -592,6 +671,7 @@ bool Aiyafala::initWithFile(const char* filename)
     positionType = up;
     damageType = magical;
     selectedType = upanddown;
+    blockedType = up;
     attackNum = 24;
     dieNum = 16;
     idleNum = 45;
@@ -642,7 +722,6 @@ void Aiyafala::initSkillAnimation()
     afterskill2->retain();
 }
 
-
 void Aiyafala::skill()
 {
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
@@ -691,6 +770,7 @@ void Aiyafala::skillHealthUpdate(float dt)
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
             auto map = dynamic_cast<MapScene*>(this->getParent());
+            this->releaseAnimation();
             this->removeFromParent();
             auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
             auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
@@ -698,6 +778,8 @@ void Aiyafala::skillHealthUpdate(float dt)
             map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
             /*******************再部署时间******************/
             employeelist->reputtingLoading();
+
+            releaseAllBlockedEnemy();//释放阻挡敌人
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -738,6 +820,7 @@ void Aiyafala::skillOverUpdate(float dt)
 
 
 
+
 bool Xingxiong::initWithFile(const char* filename)
 {
     if (!Employee::initWithFile(filename))
@@ -749,7 +832,7 @@ bool Xingxiong::initWithFile(const char* filename)
     healthMAX = 3850;
     health = 3850;
     spMAX = 50;
-    sp = 30;
+    sp = 45;
     attrack = 490;
     defend = 813;
     magicDefend = 0;
@@ -763,6 +846,7 @@ bool Xingxiong::initWithFile(const char* filename)
     positionType = down;
     damageType = phisical;
     selectedType = down;
+    blockedType = down;
     attackNum = 38;
     dieNum = 28;
     idleNum = 86;
@@ -770,7 +854,7 @@ bool Xingxiong::initWithFile(const char* filename)
     attackReachNum = 30;
     //技能参数不同干员需要哪些单独初始化
     beforeskillNum = 19;
-    duringskillNum = 13;
+    duringskillNum = 9;
     afterskillNum = 6;
     /***********************************/
 
@@ -801,8 +885,8 @@ void Xingxiong::initSkillAnimation()
 {
     this->beforeskill1 = Employee::createAnimate(1, name.c_str(), "beforeskill", beforeskillNum, 1, 0.04f);
     this->beforeskill2 = Employee::createAnimate(2, name.c_str(), "beforeskill", beforeskillNum, 1, 0.04f);
-    this->duringskill1 = Employee::createAnimate(1, name.c_str(), "duringskill", duringskillNum, 23, 0.08f);
-    this->duringskill2 = Employee::createAnimate(2, name.c_str(), "duringskill", duringskillNum, 23, 0.08f);
+    this->duringskill1 = Employee::createAnimate(1, name.c_str(), "duringskill", duringskillNum, 67, 0.04f);
+    this->duringskill2 = Employee::createAnimate(2, name.c_str(), "duringskill", duringskillNum, 67, 0.04f);
     this->afterskill1 = Employee::createAnimate(1, name.c_str(), "afterskill", afterskillNum, 1, 0.04f);
     this->afterskill2 = Employee::createAnimate(2, name.c_str(), "afterskill", afterskillNum, 1, 0.04f);
     beforeskill1->retain();
@@ -812,7 +896,6 @@ void Xingxiong::initSkillAnimation()
     afterskill1->retain();
     afterskill2->retain();
 }
-
 
 void Xingxiong::skill()
 {
@@ -862,6 +945,7 @@ void Xingxiong::skillHealthUpdate(float dt)
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
             auto map = dynamic_cast<MapScene*>(this->getParent());
+            this->releaseAnimation();
             this->removeFromParent();
             auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
             auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
@@ -869,6 +953,8 @@ void Xingxiong::skillHealthUpdate(float dt)
             map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
             /*******************再部署时间******************/
             employeelist->reputtingLoading();
+
+            releaseAllBlockedEnemy();//释放阻挡敌人
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -884,9 +970,9 @@ void Xingxiong::skillOverUpdate(float dt)
     attrackNumber = 1;
     defend = 813;
 
-    unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillSPUpdate));
-    unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillAttrackUpdate));
-    unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillHealthUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillSPUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillAttrackUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillHealthUpdate));
 
     beforeskill1->release();
     beforeskill2->release();

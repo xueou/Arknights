@@ -110,7 +110,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     register_all_packages();
 
-    auto mapInformation = MapInformation::create();
+    //auto mapInformation = MapInformation::create();
 
     // create a scene. it's an autorelease object
     auto scene = Scene::create();

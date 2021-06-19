@@ -42,20 +42,29 @@ void Enemy::loadingBlood()
     schedule(CC_SCHEDULE_SELECTOR(Enemy::bloodUpdate));
 }
 
+void Enemy::getIsBlockedBy(Employee* p)
+{
+    this->isBlockedBy = p;
+}
+
 void Enemy::initAnimation()
 {
     this->move1 = Enemy::createAnimate(1, name.c_str(), "move", moveNum, -1, 0.04f);
     this->move2 = Enemy::createAnimate(2, name.c_str(), "move", moveNum, -1, 0.04f);
-    this->attack1 = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, -1, 0.04f);
-    this->attack2 = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, -1, 0.04f);
+    this->attack1keep = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, -1, 0.04f);
+    this->attack2keep = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, -1, 0.04f);
+    this->attack1once = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, 0.04f);
+    this->attack2once = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, 0.04f);
     this->idle1 = Enemy::createAnimate(1, name.c_str(), "idle", idleNum, -1, 0.04f);
     this->idle2 = Enemy::createAnimate(2, name.c_str(), "idle", idleNum, -1, 0.04f);
     this->die1 = Enemy::createAnimate(1, name.c_str(), "die", dieNum, 1, 0.04f);
     this->die2 = Enemy::createAnimate(2, name.c_str(), "die", dieNum, 1, 0.04f);
     move1->retain();
     move2->retain();
-    attack1->retain();
-    attack2->retain();
+    attack1keep->retain();
+    attack2keep->retain();
+    attack1once->retain();
+    attack2once->retain();
     idle1->retain();
     idle2->retain();
     die1->retain();
@@ -77,6 +86,20 @@ void Enemy::initAnimation()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_enemyStateDieListener, this);*/
 }
 
+void Enemy::releaseAnimation()
+{
+    move1->release();
+    move2->release();
+    attack1keep->release();
+    attack2keep->release();
+    attack1once->retain();
+    attack2once->retain();
+    idle1->release();
+    idle2->release();
+    die1->release();
+    die2->release();
+}
+
 void Enemy::getPositionArray(Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
 {
     for (int i = 0; i < maxpositionarray && (a[i] != Vec2::ZERO); i++)
@@ -86,7 +109,6 @@ void Enemy::getPositionArray(Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
         pointNum++;
     }
 }
-
 
 Animation* Enemy::createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit)
 {
@@ -231,6 +253,21 @@ void Enemy::stateUpdate(float dt)
         {
             if (this->health <= 0)
                 this->setPresentState(enemyStateDie);
+            else
+            {
+                if (this->onlyAttrackWhenBlocked == true)
+                {
+                    if (isblocked == true)
+                    {
+                        stopAllActions();
+                    }
+                }
+                else
+                {
+
+                }
+            }
+
         }
     }
 }
@@ -239,11 +276,6 @@ void Enemy::update(float dt)
 {
     if (isadded)
     {
-        if (health <= 0)
-        {
-            /*******死亡动画，加上再做topUpdate2*******/
-            
-        }
         /*if (isblocked == false && ismoving == false && pointNow < pointNum)
         {
             Vec2 realXY = positionArray[pointNow + 1] - positionNow;
@@ -295,6 +327,12 @@ void Enemy::update(float dt)
                         auto topUpdate1 = "topUpdate1";
                         Director::getInstance()->getEventDispatcher()->dispatchCustomEvent("topUpdate1", static_cast<void*>(&topUpdate1));
 
+                        if (isblocked == true)
+                        {
+                            this->isBlockedBy->deleteBlockedEnemy(this);
+                            this->isBlockedBy->setRemainBlockNumber(this->isBlockedBy->getRemainBlockNumber() + this->blockNumber);
+                        }
+
                         this->removeFromParent();
                         this->setIsadded(false);
                         });
@@ -340,6 +378,8 @@ bool shibing::initWithFile(const char* filename)
     moveSpeed = 1.1f;
     positionType = down;
     damageType = phisical;
+    onlyAttrackWhenBlocked = true;
+    isblocked = false;
     attackNum = 26;
     dieNum = 18;
     idleNum = 17;
@@ -355,7 +395,6 @@ bool shibing::initWithFile(const char* filename)
 
     return true;
 }
-
 
  shibing* shibing::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
 {
@@ -373,6 +412,7 @@ bool shibing::initWithFile(const char* filename)
      Enemy::update(dt);
      
  }
+
 
 
  bool yuanshichong::initWithFile(const char* filename)
@@ -394,6 +434,8 @@ bool shibing::initWithFile(const char* filename)
      moveSpeed = 1.0f;
      positionType = down;
      damageType = phisical;
+     onlyAttrackWhenBlocked = true;
+     isblocked = false;
      attackNum = 19;
      dieNum = 6;
      idleNum = 40;

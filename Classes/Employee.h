@@ -1,6 +1,6 @@
 #pragma once
 #include "cocos2d.h"
-#include "Enemy.h"
+class Enemy;
 
 #define down 0//地面
 #define up 1//高台
@@ -69,9 +69,13 @@ public:
     Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit);
     void attrackSelectedEnemy();
     bool searchEnemy();
+    void searchForBlock();
+    void deleteBlockedEnemy(Enemy* m);
+    void releaseAllBlockedEnemy();
     bool searchEnemyByType(Vec2 range[12],int rangeNum);
     int getEmployeeListType();
 
+    
     void spUpdate(float dt);
     void skillButtonUpdate(float dt);
     void spIncreaseUpdate(float dt);
@@ -81,16 +85,18 @@ public:
     void update(float dt);
 protected:
     std::string name;
-    //最大生命值、最大技能值、攻、防、法抗、阻挡数、剩余阻挡数、同时攻击数、攻击速度、攻击范围类型
-    int healthMAX, spMAX, attrack, defend, magicDefend, blockNumber, remainBlockNumber, attrackNumber, attrackSpeed, attrackRange;
+    //最大生命值、最大技能值、攻、防、法抗、阻挡数、同时攻击数、攻击速度、攻击范围类型
+    int healthMAX, spMAX, attrack, defend, magicDefend, blockNumber, attrackNumber, attrackSpeed, attrackRange;
     //攻击间隔、技能持续时间
     float attrackInterval, skillTime;
     //格子位置坐标
     Vec2 positionXY;
-    //地面/高台、法伤/物伤/奶、能攻击的敌人类型
-    int positionType, damageType, selectedType;
+    //地面/高台、法伤/物伤/奶、能攻击的敌人类型、能阻挡的敌人类型
+    int positionType, damageType, selectedType, blockedType;
     //锁定的攻击敌人
-    Vector<Enemy*> selectedEnemy;
+    Vector<Enemy*> selectedEnemy;   
+    //阻挡的敌人
+    Vector<Enemy*> blockedEnemy;
     //动作
     Animation* attack1, * attack2, * start1, * start2, * idle1, * idle2, * die1, * die2;
     Animation* beforeskill1, * beforeskill2, * duringskill1, * duringskill2, * afterskill1, * afterskill2, * skill1, * skill2;
@@ -100,6 +106,7 @@ protected:
     int attackReachNum;//攻击生效帧数
     CC_SYNTHESIZE(int, health, Health);//当前生命值
     CC_SYNTHESIZE(int, sp, SP);//当前技能值
+    CC_SYNTHESIZE(int, remainBlockNumber, RemainBlockNumber);//剩余阻挡数
     CC_SYNTHESIZE(int, direction0, Direction0);//放置方向
     CC_SYNTHESIZE(EmployeeState, lastState, LastState);
     CC_SYNTHESIZE(EmployeeState, presentState, PresentState);

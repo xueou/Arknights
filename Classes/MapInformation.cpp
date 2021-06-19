@@ -36,7 +36,10 @@ void MapInformation::addEnemy(int type, int direction, Vec2 positionArray[maxpos
 void MapInformation::eraseAll()
 {
     for (Enemy* p : instance->allEnemyInMap)
+    {
         p->unschedule(CC_SCHEDULE_SELECTOR(Enemy::bloodUpdate));
+        p->releaseAnimation();
+    }
     instance->allEmployeeInMap.clear();
 	instance->allEnemyInMap.clear();
     //instance->allEmployeeInList.clear();

@@ -1,5 +1,6 @@
 #pragma once
 #include "cocos2d.h"
+#include "Employee.h"
 #include <cmath>
 #include <vector>
 #include <string>
@@ -14,7 +15,8 @@
 typedef enum {
 	enemyStateNone = 0, //无状态
 	enemyStateIdle,
-	enemyStateAttack,
+	enemyStateAttackOnce,
+	enemyStateAttackKeep,
 	enemyStateMove,
 	enemyStateDie
 }EnemyState;
@@ -51,12 +53,15 @@ class Enemy : public cocos2d::Sprite
 public:
 	virtual bool initWithFile(const char* filename);
 	void initAnimation();
+	void releaseAnimation();
 
 	//赋予对象移动路径
 	void getPositionArray(Vec2 a[maxpositionarray],Vec2 b[maxpositionarray]);
 	//获得动画
 	Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit);
 	void loadingBlood();
+	bool searchEmployee();
+	void getIsBlockedBy(Employee* p);
 
 	void bloodUpdate(float dt);
 	void positionUpdate(float dt);
@@ -74,25 +79,28 @@ public:
 	std::vector<Vec2> positionXYNow;
 	//当下所处实际像素位置坐标
 	Vec2 positionNow;
+	Employee* isBlockedBy = NULL;
 protected:
 	std::string name;
-	//最大生命值、攻、所需阻挡数（重量）、攻击速度、法伤/物伤
-	int healthMAX, attrack, blockNumber, attrackSpeed, damageType;
+	//最大生命值、攻、攻击速度、法伤/物伤
+	int healthMAX, attrack, attrackSpeed, damageType;
 	//移动速度、攻击间隔
 	float moveSpeed, attrackInterval;
-	//是否被阻挡,移动	
-	bool isblocked = false, ismoving = false;
+	//是否在移动、是否只有被阻挡时才攻击	
+	bool ismoving = false, onlyAttrackWhenBlocked;
 	//动作
-	Animation* attack1, *attack2, *move1, *move2, *idle1, *idle2, *die1, *die2;
+	Animation* attack1keep, *attack2keep, * attack1once, * attack2once, *move1, *move2, *idle1, *idle2, *die1, *die2;
 	//帧数
 	int attackNum, moveNum, idleNum, dieNum;
 	CC_SYNTHESIZE(int, health, Health);//当前生命值
 	CC_SYNTHESIZE(int, defend, Defend);//防
+	CC_SYNTHESIZE(int, blockNumber, BlockNumber);//所需阻挡数（重量）
 	CC_SYNTHESIZE(int, magicDefend, MagicDefend);//法抗
 	CC_SYNTHESIZE(int, positionType, PositionType);//地面/高台
 	CC_SYNTHESIZE(EnemyState, lastState, LastState);
 	CC_SYNTHESIZE(EnemyState, presentState, PresentState);
 	CC_SYNTHESIZE(bool, isadded, Isadded);//是否被添加到地图
+	CC_SYNTHESIZE(bool, isblocked, Isblocked);//是否被阻挡
 };
 
 class shibing :public Enemy
