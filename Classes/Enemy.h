@@ -61,11 +61,12 @@ public:
 	//获得动画
 	Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit);
 	void loadingBlood();
-	bool searchEmployee();
+	Employee* searchEmployee();
 	void getIsBlockedBy(Employee* p);
 	void attrackBlocked();
+	void attrackSelected(Employee* p);
 	
-
+	void movingAttrackUpdate(float dt);
 	void bloodUpdate(float dt);
 	void positionUpdate(float dt);
 	void positionXYUpdate(float dt);
@@ -87,10 +88,12 @@ protected:
 	std::string name;
 	//最大生命值、攻、攻击速度、法伤/物伤
 	int healthMAX, attrack, attrackSpeed, damageType;
-	//移动速度、攻击间隔
-	float moveSpeed, attrackInterval;
+	//移动速度、攻击间隔、远程攻击半径（格子数）
+	float moveSpeed, attrackInterval, attrackR;
 	//是否只有被阻挡时才攻击	
 	bool onlyAttrackWhenBlocked;
+	//锁定的攻击干员
+	Vector<Employee*> selectedEmployee;
 	//动作
 	Animation* attack1keep, *attack2keep, * attack1once, * attack2once, *move1, *move2, *idle1, *idle2, *die1, *die2;
 	//帧数

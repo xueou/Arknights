@@ -51,8 +51,8 @@ void Enemy::initAnimation()
 {
     this->move1 = Enemy::createAnimate(1, name.c_str(), "move", moveNum, -1, 0.04f);
     this->move2 = Enemy::createAnimate(2, name.c_str(), "move", moveNum, -1, 0.04f);
-    this->attack1keep = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, 0.04f);
-    this->attack2keep = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, 0.04f);
+    this->attack1keep = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, attrackInterval / attackNum);
+    this->attack2keep = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, attrackInterval / attackNum);
     this->attack1once = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, 0.04f);
     this->attack2once = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, 0.04f);
     this->idle1 = Enemy::createAnimate(1, name.c_str(), "idle", idleNum, -1, 0.04f);
@@ -87,6 +87,26 @@ void Enemy::initAnimation()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_enemyStateDieListener, this);*/
 }
 
+Employee* Enemy::searchEmployee()
+{
+    this->selectedEmployee.clear();
+    int index = -1;   
+    float singleSquareLength = getLength((positionArray[pointNow + 1] - positionArray[pointNow])) / getLength((positionXYArray[pointNow + 1] - positionXYArray[pointNow]));
+    float length = singleSquareLength * attrackR;
+    for (Employee* employee0 : MapInformation::getInstance()->allEmployeeInMap)
+    {
+        if (getLength((employee0->getPosition() - this->positionNow)) < length)
+        {
+            length = getLength((employee0->getPosition() - this->positionNow));
+            index = MapInformation::getInstance()->allEmployeeInMap.getIndex(employee0);
+        }
+    }
+    if (index != -1)
+        return MapInformation::getInstance()->allEmployeeInMap.at(index);
+    else
+        return nullptr;
+}
+
 void Enemy::attrackBlocked()
 {
     if (damageType == magical)
@@ -99,6 +119,21 @@ void Enemy::attrackBlocked()
             isBlockedBy->setHealth(isBlockedBy->getHealth() - (this->attrack - isBlockedBy->getDefend()));
         else
             isBlockedBy->setHealth(isBlockedBy->getHealth() - this->attrack * 5 / 100);
+    }
+}
+
+void Enemy::attrackSelected(Employee* p)
+{
+    if (damageType == magical)
+    {
+        p->setHealth(p->getHealth() - this->attrack * (100 - p->getMagicDefend()) / 100);
+    }
+    else if (damageType == phisical)
+    {
+        if (this->attrack - p->getDefend() > this->attrack * 5 / 100)
+            p->setHealth(p->getHealth() - (this->attrack - p->getDefend()));
+        else
+            p->setHealth(p->getHealth() - this->attrack * 5 / 100);
     }
 }
 
@@ -151,6 +186,30 @@ Animation* Enemy::createAnimate(int direction, const char* name, const char* act
     animation->setDelayPerUnit(delayPerUnit);
 
     return animation;
+}
+
+void Enemy::movingAttrackUpdate(float dt)
+{
+    auto goal = searchEmployee();
+    if (goal != nullptr)
+    {
+        if (isblocked == false)
+        {
+            stopActionByTag(enemyPingYi);
+            stopActionByTag(enemyStateMove);
+        }
+        
+        auto animation0 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (attack1once) : (attack2once));
+        auto callbackAttrack = CallFunc::create([this,goal]() {
+            this->attrackSelected(goal);
+            this->ismoving = false;
+            this->setLastState(enemyStateNone);
+            if(this->isblocked==true)
+                this->setPresentState(enemyStateNone);
+            });
+        auto animation = Sequence::create(animation0, callbackAttrack, nullptr);
+        this->runAction(animation);
+    }
 }
 
 void Enemy::bloodUpdate(float dt)
@@ -282,7 +341,11 @@ void Enemy::stateUpdate(float dt)
                 }
                 else
                 {
-
+                    if (isblocked == true)                               //这个逻辑要调试
+                    {
+                        stopActionByTag(enemyPingYi);
+                        stopActionByTag(enemyStateMove);
+                    }
                 }
             }
 
@@ -406,6 +469,7 @@ bool shibing::initWithFile(const char* filename)
     attrackSpeed = 100;
     attrackInterval = 2;
     moveSpeed = 1.1f;
+    attrackR = 0.f;
     positionType = down;
     damageType = phisical;
     onlyAttrackWhenBlocked = true;
@@ -424,6 +488,9 @@ bool shibing::initWithFile(const char* filename)
     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
     scheduleUpdate();
+
+    if(onlyAttrackWhenBlocked==false)
+        schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
 
     return true;
 }
@@ -464,6 +531,7 @@ bool shibing::initWithFile(const char* filename)
      attrackSpeed = 100;
      attrackInterval = 1.7f;
      moveSpeed = 1.0f;
+     attrackR = 0.f;
      positionType = down;
      damageType = phisical;
      onlyAttrackWhenBlocked = true;
@@ -482,6 +550,9 @@ bool shibing::initWithFile(const char* filename)
      schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
      schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
      scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
 
      return true;
  }

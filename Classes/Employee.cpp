@@ -449,9 +449,10 @@ void Employee::addSkillList()
                 /***********************¸ÉÔ± ³·ÍË*****************************/
                 this->releaseAnimation();
                 this->removeFromParent();
-                auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
-                auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
                 
+                auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
+                auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));               
+
                 int m = map->getC() + (employeelist->getFee() + (employeelist->getReputNum() >= 2 ? (employeelist->getFee()) : (employeelist->getReputNum() == 1 ? (employeelist->getFee() / 2) : (0)))) / 2;
                 map->setC((m) > 99 ? (99) : (m));
                 map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
@@ -463,6 +464,8 @@ void Employee::addSkillList()
                 employeelist->setOpacity(100);
                 employeelist->setIsadded(false);
                 employeelist->setReputNum(employeelist->getReputNum() + 1);
+
+                MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             };
             _eventDispatcher->addEventListenerWithSceneGraphPriority(listener2, retreat);
             map->addChild(retreat, 493, 202);
@@ -617,6 +620,7 @@ void Employee::update(float dt)
                     auto map = dynamic_cast<MapScene*>(this->getParent());
                     this->releaseAnimation();
                     this->removeFromParent();
+                    
                     auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
                     auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
 
@@ -629,6 +633,8 @@ void Employee::update(float dt)
                     employeelist->setOpacity(100);
                     employeelist->setIsadded(false);
                     employeelist->setReputNum(employeelist->getReputNum() + 1);
+
+                    MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
                     });
                 this->runAction(Sequence::create(animation, callbackDie, nullptr));
 
@@ -773,6 +779,7 @@ void Aiyafala::skillHealthUpdate(float dt)
             auto map = dynamic_cast<MapScene*>(this->getParent());
             this->releaseAnimation();
             this->removeFromParent();
+            
             auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
             auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
 
@@ -785,6 +792,8 @@ void Aiyafala::skillHealthUpdate(float dt)
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
             employeelist->setReputNum(employeelist->getReputNum() + 1);
+
+            MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
     }
@@ -948,6 +957,7 @@ void Xingxiong::skillHealthUpdate(float dt)
             auto map = dynamic_cast<MapScene*>(this->getParent());
             this->releaseAnimation();
             this->removeFromParent();
+            
             auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
             auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
 
@@ -960,6 +970,8 @@ void Xingxiong::skillHealthUpdate(float dt)
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
             employeelist->setReputNum(employeelist->getReputNum() + 1);
+
+            MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
     }
