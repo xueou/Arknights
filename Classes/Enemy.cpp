@@ -8,7 +8,7 @@ bool Enemy::initWithFile(const char* filename)             /********************
         return false;
     }
     setLastState(enemyStateNone);
-    setPresentState(enemyStateMove);
+    setPresentState(enemyStateNone);
     /*AllocConsole();
     freopen("CONIN$", "r", stdin);
     freopen("CONOUT$", "w", stdout);
@@ -51,8 +51,8 @@ void Enemy::initAnimation()
 {
     this->move1 = Enemy::createAnimate(1, name.c_str(), "move", moveNum, -1, 0.04f);
     this->move2 = Enemy::createAnimate(2, name.c_str(), "move", moveNum, -1, 0.04f);
-    this->attack1keep = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, -1, 0.04f);
-    this->attack2keep = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, -1, 0.04f);
+    this->attack1keep = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, 0.04f);
+    this->attack2keep = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, 0.04f);
     this->attack1once = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, 0.04f);
     this->attack2once = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, 0.04f);
     this->idle1 = Enemy::createAnimate(1, name.c_str(), "idle", idleNum, -1, 0.04f);
@@ -70,6 +70,7 @@ void Enemy::initAnimation()
     die1->retain();
     die2->retain();
 
+    
     /*ValueMap info8;
     info8["FrameId"] = Value(StringUtils::format("Frame%d", dieNum));
     die1->getFrames().at(dieNum - 1)->setUserInfo(info8);
@@ -84,6 +85,21 @@ void Enemy::initAnimation()
             this->setIsadded(false);
         });
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_enemyStateDieListener, this);*/
+}
+
+void Enemy::attrackBlocked()
+{
+    if (damageType == magical)
+    {
+        isBlockedBy->setHealth(isBlockedBy->getHealth() - this->attrack * (100 - isBlockedBy->getMagicDefend()) / 100);
+    }
+    else if (damageType == phisical)
+    {
+        if (this->attrack - isBlockedBy->getDefend() > this->attrack * 5 / 100)
+            isBlockedBy->setHealth(isBlockedBy->getHealth() - (this->attrack - isBlockedBy->getDefend()));
+        else
+            isBlockedBy->setHealth(isBlockedBy->getHealth() - this->attrack * 5 / 100);
+    }
 }
 
 void Enemy::releaseAnimation()
@@ -157,9 +173,10 @@ void Enemy::positionUpdate(float dt)
             Vec2 theoryRealXY = positionArray[pointNow + 1] - positionArray[pointNow];
             Vec2 theorySquareNum = positionXYArray[pointNow + 1] - positionXYArray[pointNow];
             auto map1moveto1 = MoveTo::create(realSquareNum(realXY, theoryRealXY, theorySquareNum) / moveSpeed * 2, positionArray[pointNow + 1]);
+            map1moveto1->setTag(enemyPingYi);
             this->runAction(map1moveto1);
             ismoving = true;
-
+            presentState = enemyStateMove;
             /*auto move = Animate::create(move1);
             //auto move = Animate::create((Enemy::createAnimate(1, name.c_str(), "move", 23,-1,0.04f)));
             this->runAction(move);
@@ -259,7 +276,8 @@ void Enemy::stateUpdate(float dt)
                 {
                     if (isblocked == true)
                     {
-                        stopAllActions();
+                        presentState = enemyStateAttackKeep;
+                        stopActionByTag(enemyPingYi);
                     }
                 }
                 else
@@ -308,6 +326,7 @@ void Enemy::update(float dt)
         }*/
         if (lastState != presentState)
         {           
+            
             switch (presentState)
             {
                 case enemyStateMove: {
@@ -315,6 +334,17 @@ void Enemy::update(float dt)
                         this->stopActionByTag(lastState);
                     auto animation = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (move1) : (move2));
                     animation->setTag(enemyStateMove);
+                    this->runAction(animation); }
+                    break;
+                case enemyStateAttackKeep: {
+                    this->stopActionByTag(lastState);
+                    auto animation0 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (attack1keep) : (attack2keep));
+                    auto callbackAttackKeep = CallFunc::create([this]() {
+                        this->attrackBlocked();
+                        }); 
+                    auto animation1 = Sequence::create(animation0, callbackAttackKeep, nullptr);
+                    auto animation = RepeatForever::create(animation1);
+                    animation->setTag(enemyStateAttackKeep);
                     this->runAction(animation); }
                     break;
                 case enemyStateDie: {
@@ -380,10 +410,12 @@ bool shibing::initWithFile(const char* filename)
     damageType = phisical;
     onlyAttrackWhenBlocked = true;
     isblocked = false;
+    ismoving = false;
     attackNum = 26;
     dieNum = 18;
     idleNum = 17;
     moveNum = 23;
+    attackReachNum = 15;
     /***********************************/
     
     initAnimation();
@@ -436,10 +468,12 @@ bool shibing::initWithFile(const char* filename)
      damageType = phisical;
      onlyAttrackWhenBlocked = true;
      isblocked = false;
+     ismoving = false;
      attackNum = 19;
      dieNum = 6;
      idleNum = 40;
      moveNum = 32;
+     attackReachNum = 16;
      /***********************************/
 
      initAnimation();

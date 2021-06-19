@@ -85,8 +85,8 @@ public:
     void update(float dt);
 protected:
     std::string name;
-    //最大生命值、最大技能值、攻、防、法抗、阻挡数、同时攻击数、攻击速度、攻击范围类型
-    int healthMAX, spMAX, attrack, defend, magicDefend, blockNumber, attrackNumber, attrackSpeed, attrackRange;
+    //最大生命值、最大技能值、攻、阻挡数、同时攻击数、攻击速度、攻击范围类型
+    int healthMAX, spMAX, attrack, blockNumber, attrackNumber, attrackSpeed, attrackRange;
     //攻击间隔、技能持续时间
     float attrackInterval, skillTime;
     //格子位置坐标
@@ -106,6 +106,8 @@ protected:
     int attackReachNum;//攻击生效帧数
     CC_SYNTHESIZE(int, health, Health);//当前生命值
     CC_SYNTHESIZE(int, sp, SP);//当前技能值
+    CC_SYNTHESIZE(int, defend, Defend);//防御
+    CC_SYNTHESIZE(int, magicDefend, MagicDefend);//法抗
     CC_SYNTHESIZE(int, remainBlockNumber, RemainBlockNumber);//剩余阻挡数
     CC_SYNTHESIZE(int, direction0, Direction0);//放置方向
     CC_SYNTHESIZE(EmployeeState, lastState, LastState);

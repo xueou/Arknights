@@ -277,6 +277,7 @@ void Employee::searchForBlock()
             blockedEnemy.pushBack(temporary.at(index));
             temporary.at(index)->setIsblocked(true);
             temporary.at(index)->isBlockedBy = this;
+            temporary.at(index)->setIsmoving(false);
             remainBlockNumber -= temporary.at(index)->getBlockNumber();
         }
     }

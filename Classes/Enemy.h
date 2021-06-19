@@ -18,7 +18,8 @@ typedef enum {
 	enemyStateAttackOnce,
 	enemyStateAttackKeep,
 	enemyStateMove,
-	enemyStateDie
+	enemyStateDie,
+	enemyPingYi//此状态只为了给平移动作设tag
 }EnemyState;
 
 //考虑到阻挡因素，实际action时起始点不一定在路径拐点上，故需根据实际像素坐标差、理论像素坐标差、理论格子数计算该动作实际格子数
@@ -62,6 +63,8 @@ public:
 	void loadingBlood();
 	bool searchEmployee();
 	void getIsBlockedBy(Employee* p);
+	void attrackBlocked();
+	
 
 	void bloodUpdate(float dt);
 	void positionUpdate(float dt);
@@ -86,12 +89,14 @@ protected:
 	int healthMAX, attrack, attrackSpeed, damageType;
 	//移动速度、攻击间隔
 	float moveSpeed, attrackInterval;
-	//是否在移动、是否只有被阻挡时才攻击	
-	bool ismoving = false, onlyAttrackWhenBlocked;
+	//是否只有被阻挡时才攻击	
+	bool onlyAttrackWhenBlocked;
 	//动作
 	Animation* attack1keep, *attack2keep, * attack1once, * attack2once, *move1, *move2, *idle1, *idle2, *die1, *die2;
 	//帧数
 	int attackNum, moveNum, idleNum, dieNum;
+	//攻击生效帧数
+	int attackReachNum;
 	CC_SYNTHESIZE(int, health, Health);//当前生命值
 	CC_SYNTHESIZE(int, defend, Defend);//防
 	CC_SYNTHESIZE(int, blockNumber, BlockNumber);//所需阻挡数（重量）
@@ -101,6 +106,7 @@ protected:
 	CC_SYNTHESIZE(EnemyState, presentState, PresentState);
 	CC_SYNTHESIZE(bool, isadded, Isadded);//是否被添加到地图
 	CC_SYNTHESIZE(bool, isblocked, Isblocked);//是否被阻挡
+	CC_SYNTHESIZE(bool, ismoving, Ismoving);//是否在移动
 };
 
 class shibing :public Enemy
