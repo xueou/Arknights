@@ -252,6 +252,10 @@ bool Employee::searchEnemy()
             return this->searchEnemyByType(fajinwei[direction0], fajinweiRange);
         case HUANGHUN:
             return this->searchEnemyByType(huanghun[direction0], huanghunRange);
+        case QUNWEI:
+            return this->searchEnemyByType(qunwei[direction0], qunweiRange);
+        case DANNAI:
+            return this->searchEnemyByType(dannai[direction0], dannaiRange);
     }
     return false;
 }
@@ -430,6 +434,10 @@ int Employee::getEmployeeListType()                /***************记得补全*****
         return 3;
     else if (name == "shierteer")
         return 4;
+    else if (name == "huang")
+        return 5;
+    else if (name == "shanling")
+        return 6;
 }
 
 void Employee::addSkillList()
@@ -1412,4 +1420,263 @@ void Shierteer::skillHealthUpdate(float dt)
 void Shierteer::die(float dt)
 {
     this->presentState = employeeStateDie;
+}
+
+
+
+
+bool Huang::initWithFile(const char* filename)
+{
+    if (!Employee::initWithFile(filename))
+    {
+        return false;
+    }
+    /************基础数据初始化*********/
+    name = "huang";
+    healthMAX = 2821;
+    health = 2821;
+    spMAX = 70;
+    sp = 0;
+    attrack = 853;
+    defend = 415;
+    magicDefend = 0;
+    blockNumber = 3;
+    remainBlockNumber = 3;
+    attrackNumber = 1;
+    attrackSpeed = 100;
+    attrackRange = FAJINWEI;
+    attrackInterval = 1.2f;
+    skillTime = 9999.0f;
+    isSkillAuto = true;
+    positionType = down;
+    damageType = phisical;
+    selectedType = down;
+    blockedType = down;
+    attackNum = 18;
+    dieNum = 15;
+    idleNum = 30;
+    startNum = 10;
+    attackReachNum = 14;
+
+    beforeskillNum = 39;
+    /***********************************/
+
+    initAnimation();
+
+    schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    schedule(CC_SCHEDULE_SELECTOR(Huang::skillTouchAuto));
+    scheduleUpdate();
+
+    return true;
+}
+
+Huang* Huang::createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY)
+{
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    auto p = Huang::create(filename);
+
+    p->setDirection0(direction0);
+    p->setPosition(Vec2(origin.x, origin.y) + position);
+    p->positionXY = positionXY;
+
+    p->initSkillAnimation();
+    p->addSkillList();
+
+    return p;
+}
+
+void Huang::initSkillAnimation()
+{
+    this->beforeskill1 = Employee::createAnimate(1, name.c_str(), "beforeskill", beforeskillNum, 1, 0.04f);
+    this->beforeskill2 = Employee::createAnimate(2, name.c_str(), "beforeskill", beforeskillNum, 1, 0.04f);
+    beforeskill1->retain();
+    beforeskill2->retain();
+}
+
+void Huang::skill()
+{
+    unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    unscheduleUpdate();
+    sp = 69;
+    isskilled = true;
+    attrack = 1706;
+    attrackNumber = 3;
+    defend = 560;
+
+    this->stopAllActions();
+    auto animation1 = Animate::create((direction0 == left || direction0 == front) ? (beforeskill1) : (beforeskill2));
+    this->runAction(animation1);
+
+    attackNum = 14;
+    idleNum = 14;
+    attackReachNum = 10;
+    attrackRange = QUNWEI;
+    this->attack1 = Employee::createAnimate(1, name.c_str(), "duringskill", attackNum, -1, attrackInterval / attackNum);
+    this->attack2 = Employee::createAnimate(2, name.c_str(), "duringskill", attackNum, -1, attrackInterval / attackNum);
+    this->idle1 = Employee::createAnimate(1, name.c_str(), "duringskill", idleNum, -1, 0.04f);
+    this->idle2 = Employee::createAnimate(2, name.c_str(), "duringskill", idleNum, -1, 0.04f);
+    attack1->retain();
+    attack2->retain();
+    idle1->retain();
+    idle2->retain();
+    ValueMap info2;
+    info2["FrameId"] = Value(StringUtils::format("Frame%d", attackReachNum));
+    attack1->getFrames().at(attackReachNum - 1)->setUserInfo(info2);
+    attack2->getFrames().at(attackReachNum - 1)->setUserInfo(info2);
+    auto _employeeStateAttackListener = EventListenerCustom::create(AnimationFrameDisplayedNotification, [this](EventCustom* event)
+        {
+            auto userData = static_cast<AnimationFrame::DisplayedEventInfo*>(event->getUserData());
+            attrackSelectedEnemy();
+        });
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(_employeeStateAttackListener, this);
+    //auto animation1 = Animate::create((direction0 == left || direction0 == front) ? (beforeskill1) : (beforeskill2));
+    //auto animation2 = Animate::create((direction0 == left || direction0 == front) ? (duringskill1) : (duringskill2));
+    //auto animation3 = Animate::create((direction0 == left || direction0 == front) ? (afterskill1) : (afterskill2));
+    //auto animation = Sequence::create(animation1, animation2, animation3, nullptr);
+    //this->runAction(animation);
+
+    //schedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillSPUpdate), skillTime / static_cast<float>(spMAX));
+    //schedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillAttrackUpdate), attrackInterval);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(Huang::skillOverUpdate), 1.56f);
+
+    //scheduleOnce(CC_SCHEDULE_SELECTOR(Aiyafala::skillOverUpdate), skillTime);
+}
+
+void Huang::update(float dt)
+{
+    Employee::update(dt);
+}
+
+void Huang::skillTouchAuto(float dt)
+{
+    if (sp == spMAX)
+    {
+        AudioEngine::play2d(".\\employee\\" + name + "\\skill.mp3");
+        this->skill();
+    }
+}
+
+void Huang::skillOverUpdate(float dt)
+{       
+    lastState = employeeStateIdle;
+    presentState = employeeStateIdle;
+    auto animation = Animate::create((direction0 == left || direction0 == front) ? (idle1) : (idle2));
+    animation->setTag(employeeStateIdle);
+    this->runAction(animation);
+
+    schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    scheduleUpdate();
+}
+
+void Huang::releaseSkillAnimation()
+{
+    beforeskill1->release();
+    beforeskill2->release();
+}
+
+
+
+bool Shanling::initWithFile(const char* filename)
+{
+    if (!Employee::initWithFile(filename))
+    {
+        return false;
+    }
+    /************基础数据初始化*********/
+    name = "shanling";
+    healthMAX = 1613;
+    health = 1613;
+    spMAX = 120;
+    sp = 115;
+    attrack = 610;
+    defend = 183;
+    magicDefend = 0;
+    blockNumber = 1;
+    remainBlockNumber = 1;
+    attrackNumber = 1;
+    attrackSpeed = 100;
+    attrackRange = DANNAI;
+    attrackInterval = 2.85f;
+    skillTime = 60.0f;
+    isSkillAuto = false;
+    positionType = up;
+    damageType = nurse;
+    selectedType = upanddown;
+    blockedType = up;
+    attackNum = 26;
+    dieNum = 19;
+    idleNum = 81;
+    startNum = 9;
+    attackReachNum = 26;
+    //技能参数不同干员需要哪些单独初始化
+
+    /***********************************/
+
+    initAnimation();
+
+    schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    scheduleUpdate();
+
+    return true;
+}
+
+Shanling* Shanling::createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY)
+{
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    auto p = Shanling::create(filename);
+
+    p->setDirection0(direction0);
+    p->setPosition(Vec2(origin.x, origin.y) + position);
+    p->positionXY = positionXY;
+
+    p->initSkillAnimation();
+    p->addSkillList();
+
+    return p;
+}
+
+void Shanling::initSkillAnimation()
+{
+
+}
+
+void Shanling::skill()
+{
+    unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
+    //unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    //unscheduleUpdate();
+
+    attrack = 915;
+
+
+    schedule(CC_SCHEDULE_SELECTOR(Shanling::skillSPUpdate), skillTime / static_cast<float>(spMAX));
+
+
+    scheduleOnce(CC_SCHEDULE_SELECTOR(Xingxiong::skillOverUpdate), skillTime);
+}
+
+void Shanling::update(float dt)
+{
+    Employee::update(dt);
+}
+
+void Shanling::skillSPUpdate(float dt)
+{
+    if (sp > 0)
+        sp--;
+}
+
+
+void Shanling::skillOverUpdate(float dt)
+{
+    attrack = 610;
+
+    unschedule(CC_SCHEDULE_SELECTOR(Shanling::skillSPUpdate));
+    schedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate), 1.0f);
+}
+
+void Shanling::releaseSkillAnimation()
+{
+
 }

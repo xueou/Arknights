@@ -22,6 +22,7 @@ class Enemy;
 #define NAIDUN_CURE 6
 #define FAJINWEI 7
 #define HUANGHUN 8
+#define QUNWEI 9
 
 #define getLength(vec) static_cast<float>(std::sqrt(static_cast<double>(vec.x)*vec.x+static_cast<double>(vec.y)*vec.y))
 
@@ -197,6 +198,40 @@ public:
 protected:
     bool isskilled = false;
     bool suoxue = false;
+};
+
+class Huang :public Employee
+{
+public:
+    static Huang* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Huang);
+    void update(float dt);
+    void skillTouchAuto(float dt);
+
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
+protected:
+    bool isskilled = false;
+};
+
+class Shanling :public Employee
+{
+public:
+    static Shanling* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Shanling);
+    void update(float dt);
+
+    void skillSPUpdate(float dt);
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
 };
 
 #endif
