@@ -1,5 +1,6 @@
 #pragma once
 #include "cocos2d.h"
+#include "AudioEngine.h"
 
 class MainMap :public cocos2d::Layer
 {

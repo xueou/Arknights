@@ -1,6 +1,7 @@
 #include"MapScene.h"
 #include"MapInformation.h"
 #include "employeeList.h"
+#include "AudioEngine.h"
 
 #define getrealposition(x,y) Vec2(static_cast<float>(mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 3 * y + ((mapangle[1][0] - (mapangle[1][0] - mapangle[3][0]) / 3 * y) - (mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 3 * y)) / 6 * x), static_cast<float>(mapangle[0][1] + (mapangle[2][1] - mapangle[0][1]) / 3 * y))
 
@@ -282,7 +283,7 @@ bool MapScene1::init()
     
     auto visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
-
+    
     auto Map1 = Sprite::create("Map1Scene1.png");
     if (Map1 == nullptr)
     {

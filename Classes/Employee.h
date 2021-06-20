@@ -16,6 +16,8 @@ class Enemy;
 
 #define DANFA 1
 #define ZHONGZHUANG 2
+#define DANNAI 3
+#define QUNNAI 4
 
 #define getLength(vec) static_cast<float>(std::sqrt(static_cast<double>(vec.x)*vec.x+static_cast<double>(vec.y)*vec.y))
 
@@ -95,6 +97,8 @@ protected:
     int positionType, damageType, selectedType, blockedType;
     //锁定的攻击敌人
     Vector<Enemy*> selectedEnemy;   
+    //锁定治疗的干员
+    Vector<Employee*> selectedEmployee;
     //阻挡的敌人
     Vector<Enemy*> blockedEnemy;
     //动作

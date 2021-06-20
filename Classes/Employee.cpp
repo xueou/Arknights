@@ -1,6 +1,7 @@
 #include "Employee.h"
 #include "MapInformation.h"
 #include "Range.h"
+#include "AudioEngine.h"
 
 bool Employee::initWithFile(const char* filename)
 {
@@ -194,31 +195,40 @@ Animation* Employee::createAnimate(int direction, const char* name, const char* 
 
 void Employee::attrackSelectedEnemy()
 {
-    for (Enemy* p : this->selectedEnemy)
+    if ((attrackRange != DANNAI) && (attrackRange != QUNNAI))//医疗干员特判
     {
-        /*AllocConsole();
-        freopen("CONIN$", "r", stdin);
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
-        log("attrack %d", this->attrack);
-        log("defend %d", p->getDefend());
-        log("index %d", MapInformation::getInstance()->allEnemyInMap.getIndex(p));
-        log("health1: %d", p->getHealth());*/
-        if (damageType == magical)
+        for (Enemy* p : this->selectedEnemy)
         {
-            p->setHealth(p->getHealth() - this->attrack * (100 - p->getMagicDefend()) / 100);
+            /*AllocConsole();
+            freopen("CONIN$", "r", stdin);
+            freopen("CONOUT$", "w", stdout);
+            freopen("CONOUT$", "w", stderr);
+            log("attrack %d", this->attrack);
+            log("defend %d", p->getDefend());
+            log("index %d", MapInformation::getInstance()->allEnemyInMap.getIndex(p));
+            log("health1: %d", p->getHealth());*/
+            if (damageType == magical)
+            {
+                p->setHealth(p->getHealth() - this->attrack * (100 - p->getMagicDefend()) / 100);
+            }
+            else if (damageType == phisical)
+            {
+                if (this->attrack - p->getDefend() > this->attrack * 5 / 100)
+                    p->setHealth(p->getHealth() - (this->attrack - p->getDefend()));
+                else
+                    p->setHealth(p->getHealth() - this->attrack * 5 / 100);
+            }
+
+            //log("health2: %d", p->getHealth());
         }
-        else if (damageType == phisical)
-        {
-            if (this->attrack - p->getDefend() > this->attrack * 5 / 100)
-                p->setHealth(p->getHealth() - (this->attrack - p->getDefend()));
-            else
-                p->setHealth(p->getHealth() - this->attrack * 5 / 100);
-        }
-        
-        //log("health2: %d", p->getHealth());
     }
-    
+    else
+    {
+        for (Employee* p : this->selectedEmployee)
+        {
+            p->health += this->attrack;
+        }
+    }
 }
 
 bool Employee::searchEnemy()
@@ -299,62 +309,102 @@ void Employee::releaseAllBlockedEnemy()
 
 bool Employee::searchEnemyByType(Vec2 range[12], int rangeNum)
 {
-    this->selectedEnemy.clear();
-    for (Enemy* enemy0: MapInformation::getInstance()->allEnemyInMap)  //此处虽然多重for嵌套，但实际上在游戏本身的机制模式下
-    {                                                                  //每层循环的量级很小，总计循环次数最多时仅约几百次
-        if (enemy0->getIsadded() == true)
-        {                        
-            if (enemy0->getPositionType() == this->selectedType || this->selectedType == upanddown)
+    if ((attrackRange != DANNAI) && (attrackRange != QUNNAI))//医疗干员特判
+    {
+        this->selectedEnemy.clear();
+        for (Enemy* enemy0 : MapInformation::getInstance()->allEnemyInMap)  //此处虽然多重for嵌套，但实际上在游戏本身的机制模式下
+        {                                                                  //每层循环的量级很小，总计循环次数最多时仅约几百次
+            if (enemy0->getIsadded() == true)
             {
-                for (int i = 0, added = 0; i < rangeNum && added == 0; i++)
+                if (enemy0->getPositionType() == this->selectedType || this->selectedType == upanddown)
                 {
-                    for (Vec2 p : enemy0->positionXYNow)
-                        if (range[i] + this->positionXY == p)
-                        {
-                            if (this->selectedEnemy.size() < attrackNumber)
+                    for (int i = 0, added = 0; i < rangeNum && added == 0; i++)
+                    {
+                        for (Vec2 p : enemy0->positionXYNow)
+                            if (range[i] + this->positionXY == p)
                             {
-                                this->selectedEnemy.pushBack(enemy0);
+                                if (this->selectedEnemy.size() < attrackNumber)
+                                {
+                                    this->selectedEnemy.pushBack(enemy0);
+                                }
+                                else
+                                {
+                                    choosingMin(enemy0);
+                                }
+                                added = 1;
+                                break;
                             }
-                            else
-                            {
-                                choosingMin(enemy0);
-                            }
-                            added = 1;
-                            break;
-                        }
+                    }
                 }
-            }
-            else if (this->selectedType == upthandown)//只考虑了单体狙的情况
-            {
-                for (int i = 0, added = 0; i < rangeNum && added == 0; i++)
+                else if (this->selectedType == upthandown)//只考虑了单体狙的情况
                 {
-                    for (Vec2 p : enemy0->positionXYNow)
-                        if (range[i] + this->positionXY == p)
-                        {
-                            if (this->selectedEnemy.size() ==0)
+                    for (int i = 0, added = 0; i < rangeNum && added == 0; i++)
+                    {
+                        for (Vec2 p : enemy0->positionXYNow)
+                            if (range[i] + this->positionXY == p)
                             {
-                                this->selectedEnemy.pushBack(enemy0);
+                                if (this->selectedEnemy.size() == 0)
+                                {
+                                    this->selectedEnemy.pushBack(enemy0);
+                                }
+                                else if (this->selectedEnemy.at(0)->getPositionType() == down && enemy0->getPositionType() == up)
+                                {
+                                    this->selectedEnemy.replace(0, enemy0);
+                                }
+                                else if (!(this->selectedEnemy.at(0)->getPositionType() == up && enemy0->getPositionType() == down))
+                                {
+                                    choosingMin(enemy0);
+                                }
+                                added = 1;
+                                break;
                             }
-                            else if (this->selectedEnemy.at(0)->getPositionType()==down && enemy0->getPositionType() == up)
-                            {
-                                this->selectedEnemy.replace(0, enemy0);
-                            }
-                            else if(!(this->selectedEnemy.at(0)->getPositionType() == up && enemy0->getPositionType() == down))
-                            {
-                                choosingMin(enemy0);
-                            }
-                            added = 1;
-                            break;
-                        }
+                    }
                 }
             }
         }
+
+        if (this->selectedEnemy.size() == 0)
+            return false;
+        else
+            return true;
     }
-    
-    if (this->selectedEnemy.size() == 0)
-        return false;
     else
-        return true;
+    {
+        this->selectedEmployee.clear();
+        for (Employee* employee0 : MapInformation::getInstance()->allEmployeeInMap)
+        {
+            for (int i = 0; i < rangeNum; i++)
+            {
+                if (range[i] + this->positionXY == employee0->positionXY)
+                {
+                    if (this->selectedEmployee.size() < attrackNumber)
+                    {
+                        this->selectedEmployee.pushBack(employee0);
+                    }
+                    else
+                    {
+                        int index;
+                        int health1 = 0;
+                        for (Employee* employee1 : this->selectedEmployee)
+                        {
+                            if (employee1->health > health1)
+                            {
+                                health1 = employee1->health;
+                                index = this->selectedEmployee.getIndex(employee1);
+                            }
+                        }
+                        if (employee0->health < health1)
+                            this->selectedEmployee.replace(index, employee0);
+                    }
+                    break;
+                }
+            }
+        }
+        if (this->selectedEmployee.size() == 0)
+            return false;
+        else
+            return true;
+    }
 }
 
 int Employee::getEmployeeListType()                /***************记得补全**************/
@@ -385,6 +435,7 @@ void Employee::addSkillList()
     };
     _addSkillListListener->onTouchEnded = [this](Touch* touch, Event* event)
     {
+        AudioEngine::play2d(".\\employee\\"+name+"\\selected.mp3");
         auto m = Sprite::create("greensquare.png");
         if (Rect(this->getPosition().x - m->getContentSize().width / 2.0f, this->getPosition().y - m->getContentSize().height / 2.0f,
             m->getContentSize().width, m->getContentSize().height).containsPoint(touch->getLocation()))
@@ -492,6 +543,7 @@ void Employee::addSkillList()
                 map->removeChildByTag(203);
                 map->removeChildByTag(204);
                 /***********************释放技能*****************************/
+                AudioEngine::play2d(".\\employee\\" + name + "\\skill.mp3");
                 this->skill();
             };
             _eventDispatcher->addEventListenerWithSceneGraphPriority(listener3, skillbackground);
@@ -842,7 +894,7 @@ bool Xingxiong::initWithFile(const char* filename)
     healthMAX = 3850;
     health = 3850;
     spMAX = 50;
-    sp = 45;
+    sp = 30;
     attrack = 490;
     defend = 813;
     magicDefend = 0;

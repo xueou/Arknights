@@ -1,6 +1,7 @@
 #pragma once
 #include "MapScene.h"
 #include"MapInformation.h"
+#include "AudioEngine.h"
 
 #define aiyafala 1
 #define xingxiong 2
@@ -316,12 +317,14 @@ void employeeList<T>::employeeCreate(int direction0, Vec2 position, Vec2 positio
             auto aiyafala0 = Aiyafala::createSprite(StringUtils::format(".\\employee\\aiyafala\\aiyafala%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
             aiyafala0->setAnchorPoint(Vec2(0.5f, 0.25f));
             MapInformation::getInstance()->allEmployeeInMap.pushBack(aiyafala0);
+            AudioEngine::play2d(".\\employee\\aiyafala\\putting.mp3");
             mapscene->addChild(aiyafala0); }
             break;
         case xingxiong: {
             auto xingxiong0 = Xingxiong::createSprite(StringUtils::format(".\\employee\\xingxiong\\xingxiong%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
             xingxiong0->setAnchorPoint(Vec2(0.5f, 0.25f));
             MapInformation::getInstance()->allEmployeeInMap.pushBack(xingxiong0);
+            AudioEngine::play2d(".\\employee\\xingxiong\\putting.mp3");
             mapscene->addChild(xingxiong0); }
             break;
     }
