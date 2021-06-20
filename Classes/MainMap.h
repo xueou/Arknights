@@ -9,6 +9,8 @@ public:
 	~MainMap();
 
 	void menuCallbackForSrartMap1(Ref* pSender);
+	void menuCallbackForSrartMap2(Ref* pSender);
+	void menuCallbackForSrartMap3(Ref* pSender);
 
 	bool init();
 

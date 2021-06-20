@@ -7,7 +7,7 @@
 #define maxpositionarray 15//路径坐标数组存放最大坐标点数
 #define SHIBING 1
 #define YUANSHICHONG 2
-#define YAOGUAI 3
+#define GANRANZHEGAOJIJIUCHAGUAN 3
 
 #ifndef _MAPINFORMATION_H_
 #define _MAPINFORMATION_H_

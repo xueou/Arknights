@@ -24,7 +24,6 @@ bool MapScene::init()
     }
 
     /*************************/
-    c = 0;
     remainPuttingNumber = 8;
     /**************************/
 
@@ -273,6 +272,7 @@ bool MapScene1::init()
     mapinit(mapangle);
     enemyTotalNember = 11;
     cSpeed = 1;
+    c = 0;
     X_MAX = 7;
     Y_MAX = 4;
     /******************************************/
@@ -300,8 +300,8 @@ bool MapScene1::init()
 
     //放置干员层
     auto employeePuttingLayer = Layer::create();
-    float time[11] = { 4.0f, 5.0f ,70.0f,70.0f,70.0f,70.0f,70.0f,70.0f,70.0f,70.0f,70.0};
-    int fee[11] = { 2,3 ,2,2,2,2,2,2,2,2,2};
+    float time[11] = { 63.0f, 63.0f ,63.0f,63.0f,63.0f,63.0f,59.0f,63.0f,63.0f,59.0f,59.0f };
+    int fee[11] = { 20,22,22,21,24,20,19,17,14,12,8};
     int positionType[11] = { up, down , down, down, down,up,down,up,up,down,down};
     for (int i = 1; i <= 11; i++)
     {               
@@ -363,4 +363,124 @@ void MapScene1::updateShibing(float dt)
 {
     MapInformation::getInstance()->allEnemyInMap.at(10)->setIsadded(true);       //
     this->addChild(MapInformation::getInstance()->allEnemyInMap.at(10));       //记得改回10！！！！！！
+}
+
+
+
+
+Scene* MapScene3::createScene()
+{
+    return MapScene3::create();
+}
+
+void MapScene3::mapinit(int mapangle[4][2])
+{
+    for (int x = 0; x < 11; x++)
+        for (int y = 0; y < 8; y++)
+            map[x][y].position = Vec2(static_cast<float>(mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y + ((mapangle[1][0] - (mapangle[1][0] - mapangle[3][0]) / 7.f * y) - (mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y)) / 10.f * x), static_cast<float>(mapangle[0][1] + (mapangle[2][1] - mapangle[0][1]) / 6.f * y));
+}
+
+bool MapScene3::init()
+{
+
+    /**************基础数据初始化**************/
+    mapinit(mapangle);
+    enemyTotalNember = 45;
+    cSpeed = 1;
+    c = 11;
+    X_MAX = 11;
+    Y_MAX = 8;
+    /******************************************/
+    if (!MapScene::init())
+    {
+        return false;
+    }
+
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
+    auto Map3 = Sprite::create("Map3Scene.png");
+    if (Map3 == nullptr)
+    {
+        problemLoading("'Map3Scene.png'");
+    }
+    else
+    {
+        Map3->setAnchorPoint(Vec2::ZERO);
+        Map3->setPosition(Vec2(origin.x, origin.y));
+
+        // add the sprite as a child to this layer
+        this->addChild(Map3, 0);
+    }
+
+    //放置干员层
+    auto employeePuttingLayer = Layer::create();
+    float time[11] = { 63.0f, 63.0f ,63.0f,63.0f,63.0f,63.0f,59.0f,63.0f,63.0f,59.0f,59.0f };
+    int fee[11] = { 20,22,22,21,24,20,19,17,14,12,8 };
+    int positionType[11] = { up, down , down, down, down,up,down,up,up,down,down };
+    for (int i = 1; i <= 11; i++)
+    {
+        auto list = employeeList<MapScene3>::createSprite(StringUtils::format(".\\employeelist\\%d.png", i).c_str(), i, time[i - 1], fee[i - 1], positionType[i - 1], this);
+        list->setAnchorPoint(Vec2::ZERO);
+        list->setPosition(Vec2(origin.x + visibleSize.width - list->getContentSize().width * i, origin.y));
+        employeePuttingLayer->addChild(list, 0, i);
+        //MapInformation::getInstance()->addList(list);
+    }
+    this->addChild(employeePuttingLayer, 490, 103);
+
+    for (int i = 0; i < 9; i++)//9个纠察官
+    {
+        if (i < 4)
+            MapInformation::getInstance()->addEnemy(GANRANZHEGAOJIJIUCHAGUAN, right, positionArray1, positionXYArray1);
+        else if(i<7)
+            MapInformation::getInstance()->addEnemy(GANRANZHEGAOJIJIUCHAGUAN, left, positionArray2, positionXYArray2);
+        else
+            MapInformation::getInstance()->addEnemy(GANRANZHEGAOJIJIUCHAGUAN, left, positionArray3, positionXYArray3);
+    }
+    
+
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan1), 9.0f, 3, 3.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan2), 8.0f, 2, 15.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan3), 7.0f, 1, 27.0f);
+
+
+    scheduleUpdate();
+
+    return true;
+}
+
+void MapScene3::update(float dt)
+{
+    MapScene::update(dt);
+
+}
+
+void MapScene3::updateGanranzhegaojijiuchaguan1(float dt)
+{
+    static int num = 0;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 4)
+        num = 0;
+}
+
+void MapScene3::updateGanranzhegaojijiuchaguan2(float dt)
+{
+    static int num = 4;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 7)
+        num = 4;
+}
+
+void MapScene3::updateGanranzhegaojijiuchaguan3(float dt)
+{
+    static int num = 7;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 9)
+        num = 7;
 }

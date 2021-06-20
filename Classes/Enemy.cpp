@@ -573,3 +573,65 @@ bool shibing::initWithFile(const char* filename)
      Enemy::update(dt);
 
  }
+
+
+
+ bool ganranzhegaojijiuchaguan::initWithFile(const char* filename)
+ {
+     if (!Enemy::initWithFile(filename))
+     {
+         return false;
+     }
+     /************基础数据初始化*********/
+     name = "ganranzhegaojijiuchaguan";
+     healthMAX = 4300;
+     health = 4300;
+     attrack = 400;
+     defend = 150;
+     magicDefend = 20;
+     blockNumber = 1;
+     attrackSpeed = 100;
+     attrackInterval = 2.0f;
+     moveSpeed = 1.1f;
+     attrackR = 0.f;
+     positionType = down;
+     damageType = phisical;
+     onlyAttrackWhenBlocked = true;
+     isblocked = false;
+     ismoving = false;
+     attackNum = 21;
+     dieNum = 13;
+     idleNum = 19;
+     moveNum = 9;
+     attackReachNum = 13;
+     /***********************************/
+
+     initAnimation();
+
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
+
+     return true;
+ }
+
+ ganranzhegaojijiuchaguan* ganranzhegaojijiuchaguan::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
+ {
+     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+     auto p = ganranzhegaojijiuchaguan::create(filename);
+     p->getPositionArray(a, b);
+     p->pointNow = 0;
+     p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
+     p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ void ganranzhegaojijiuchaguan::update(float dt)
+ {
+     Enemy::update(dt);
+
+ }

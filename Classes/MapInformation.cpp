@@ -25,6 +25,12 @@ void MapInformation::addEnemy(int type, int direction, Vec2 positionArray[maxpos
             MapInformation::getInstance()->allEnemyInMap.pushBack(yuanshichong);
             yuanshichong->loadingBlood(); }
             break;
+        case GANRANZHEGAOJIJIUCHAGUAN: {
+            auto ganranzhegaojijiuchaguan = ganranzhegaojijiuchaguan::createSprite(StringUtils::format(".\\enemy\\ganranzhegaojijiuchaguan\\ganranzhegaojijiuchaguan%d.png", direction).c_str(), positionArray, positionXYArray);
+            ganranzhegaojijiuchaguan->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEnemyInMap.pushBack(ganranzhegaojijiuchaguan);
+            ganranzhegaojijiuchaguan->loadingBlood(); }
+            break;
     }
 }
 

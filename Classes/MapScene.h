@@ -111,7 +111,64 @@ class MapScene2 : public MapScene
 
 class MapScene3 : public MapScene
 {
+public:
+    static cocos2d::Scene* createScene();
+    bool init();
+    void mapinit(int mapangle[4][2]);
+    CREATE_FUNC(MapScene3);
+    void update(float dt);
 
+    void updateGanranzhegaojijiuchaguan1(float dt);
+    void updateGanranzhegaojijiuchaguan2(float dt);
+    void updateGanranzhegaojijiuchaguan3(float dt);
+
+
+    //高台地面标识初始化
+    singlePosition map[11][8] =
+    {
+        {{down},{down},{down},{down},{down},{ban},{ban},{ban} },
+        {{down} ,{up} ,{up},{ban},{up} ,{up},{ban},{ban}},
+        {{down} ,{up} ,{down} ,{down} ,{down} ,{up},{ban},{ban}},
+        {{down} ,{up} ,{down} ,{up},{down} ,{up},{ban},{ban}},
+        {{down} ,{down} ,{down} ,{up} ,{down},{ban},{ban},{ban}},
+        {{ban} ,{down} ,{down} ,{down} ,{down},{ban},{ban},{ban}},
+        {{down} ,{down} ,{down} ,{up} ,{down},{ban},{ban},{ban}},
+        {{down} ,{up} ,{down} ,{up},{down} ,{up},{ban},{ban}},
+        {{down} ,{up} ,{down} ,{down} ,{down} ,{up},{ban},{ban}},
+        {{down} ,{up} ,{up},{ban},{up} ,{up},{ban},{ban}},
+        {{down},{down},{down},{down},{down},{ban},{ban},{ban} }
+    };
+protected:
+    //地图四个角实际分辨率坐标
+    int mapangle[4][2] =
+    {
+        {150,146},//左下
+        {1139,146},//右下
+        {274,640},//左上
+        {1012,640}//右上
+    };
+    //像素路径与格子坐标路径
+    Vec2 positionArray1[maxpositionarray] = { Vec2(639,636), Vec2(640,146) };
+    Vec2 positionXYArray1[maxpositionarray] = { Vec2(5,7), Vec2(5,0) };
+    
+    Vec2 positionArray2[maxpositionarray] = { Vec2(565,636), Vec2(554,426) ,Vec2(386,426), Vec2(366,286) ,Vec2(548,286), Vec2(640,146) };
+    Vec2 positionXYArray2[maxpositionarray] = { Vec2(4,7), Vec2(4,4),Vec2(2,4), Vec2(2,2),Vec2(4,2), Vec2(5,0) };
+    
+    Vec2 positionArray3[maxpositionarray] = { Vec2(713,636), Vec2(722,426) ,Vec2(890,426), Vec2(912,286) ,Vec2(730,286), Vec2(640,146) };
+    Vec2 positionXYArray3[maxpositionarray] = { Vec2(6,7), Vec2(6,4),Vec2(8,4), Vec2(8,2),Vec2(6,2), Vec2(5,0) };
+    
+    
+    
+    Vec2 positionArray4[maxpositionarray] = { Vec2(274,640), Vec2(150,146), Vec2(640,146) };
+    Vec2 positionXYArray4[maxpositionarray] = { Vec2(0,7), Vec2(0,0), Vec2(5,0) };
+
+    Vec2 positionArray5[maxpositionarray] = { Vec2(1012,640), Vec2(1139,146), Vec2(640,146) };
+    Vec2 positionXYArray5[maxpositionarray] = { Vec2(10,7), Vec2(10,0), Vec2(5,0) };
+
+
+    Vec2 positionArray6[maxpositionarray] = { Vec2(639,636), Vec2(640,496) ,Vec2(722,426), Vec2(890,426) ,Vec2(912,286), Vec2(366,286), Vec2(386,426) ,Vec2(638,426), Vec2(640,146) };
+    Vec2 positionXYArray6[maxpositionarray] = { Vec2(5,7), Vec2(5,5),Vec2(6,4), Vec2(8,4),Vec2(8,2), Vec2(2,2) , Vec2(2,4),Vec2(5,4), Vec2(5,0) };
+    
 };
 
 #endif

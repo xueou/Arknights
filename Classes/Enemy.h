@@ -131,5 +131,14 @@ public:
 	CREATE_SPIRITE(yuanshichong);
 	void update(float dt);
 };
+//ganranzhegaojijiuchaguan
+class ganranzhegaojijiuchaguan :public Enemy
+{
+public:
+	static ganranzhegaojijiuchaguan* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(ganranzhegaojijiuchaguan);
+	void update(float dt);
+};
 
 #endif
