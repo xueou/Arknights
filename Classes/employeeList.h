@@ -9,6 +9,11 @@
 #define shierteer 4
 #define huang 5
 #define shanling 6
+#define yinhui 7
+#define baimianxiao 8
+#define nengtianshi 9
+#define dekesasi 10
+#define taojinniang 11
 
 #define CREATE_SPIRITE(__TYPE__) \
 static __TYPE__* create(const char *filename) \
@@ -358,6 +363,41 @@ void employeeList<T>::employeeCreate(int direction0, Vec2 position, Vec2 positio
             MapInformation::getInstance()->allEmployeeInMap.pushBack(shanling0);
             AudioEngine::play2d(".\\employee\\shanling\\putting.mp3");
             mapscene->addChild(shanling0); }
+            break;
+        case yinhui: {
+            auto yinhui0 = Yinhui::createSprite(StringUtils::format(".\\employee\\yinhui\\yinhui%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
+            yinhui0->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEmployeeInMap.pushBack(yinhui0);
+            AudioEngine::play2d(".\\employee\\yinhui\\putting.mp3");
+            mapscene->addChild(yinhui0); }
+            break;
+        case baimianxiao: {
+            auto baimianxiao0 = Baimianxiao::createSprite(StringUtils::format(".\\employee\\baimianxiao\\baimianxiao%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
+            baimianxiao0->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEmployeeInMap.pushBack(baimianxiao0);
+            AudioEngine::play2d(".\\employee\\baimianxiao\\putting.mp3");
+            mapscene->addChild(baimianxiao0); }
+            break;
+        case nengtianshi: {
+            auto nengtianshi0 = Nengtianshi::createSprite(StringUtils::format(".\\employee\\nengtianshi\\nengtianshi%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
+            nengtianshi0->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEmployeeInMap.pushBack(nengtianshi0);
+            AudioEngine::play2d(".\\employee\\nengtianshi\\putting.mp3");
+            mapscene->addChild(nengtianshi0); }
+            break;
+        case dekesasi: {
+            auto dekesasi0 = Dekesasi::createSprite(StringUtils::format(".\\employee\\dekesasi\\dekesasi%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
+            dekesasi0->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEmployeeInMap.pushBack(dekesasi0);
+            AudioEngine::play2d(".\\employee\\dekesasi\\putting.mp3");
+            mapscene->addChild(dekesasi0); }
+            break;
+        case taojinniang: {
+            auto taojinniang0 = Taojinniang::createSprite(StringUtils::format(".\\employee\\taojinniang\\taojinniang%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
+            taojinniang0->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEmployeeInMap.pushBack(taojinniang0);
+            AudioEngine::play2d(".\\employee\\taojinniang\\putting.mp3");
+            mapscene->addChild(taojinniang0); }
             break;
     }
     mapscene->setRemainPuttingNumber(mapscene->getRemainPuttingNumber() - 1);

@@ -300,10 +300,10 @@ bool MapScene1::init()
 
     //∑≈÷√∏…‘±≤„
     auto employeePuttingLayer = Layer::create();
-    float time[10] = { 4.0f, 5.0f ,70.0f,70.0f,70.0f,70.0f};
-    int fee[10] = { 2,3 ,2,2,2,2};
-    int positionType[10] = { up, down , down, down, down,up};
-    for (int i = 1; i <= 6; i++)
+    float time[11] = { 4.0f, 5.0f ,70.0f,70.0f,70.0f,70.0f,70.0f,70.0f,70.0f,70.0f,70.0};
+    int fee[11] = { 2,3 ,2,2,2,2,2,2,2,2,2};
+    int positionType[11] = { up, down , down, down, down,up,down,up,up,down,down};
+    for (int i = 1; i <= 11; i++)
     {               
         auto list = employeeList<MapScene1>::createSprite(StringUtils::format(".\\employeelist\\%d.png", i).c_str(), i, time[i - 1], fee[i - 1], positionType[i - 1], this);
         list->setAnchorPoint(Vec2::ZERO);

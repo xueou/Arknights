@@ -23,6 +23,9 @@ class Enemy;
 #define FAJINWEI 7
 #define HUANGHUN 8
 #define QUNWEI 9
+#define YUANWEI 10
+#define SUJU 11
+#define XIANFENG 12
 
 #define getLength(vec) static_cast<float>(std::sqrt(static_cast<double>(vec.x)*vec.x+static_cast<double>(vec.y)*vec.y))
 
@@ -230,6 +233,97 @@ public:
     void update(float dt);
 
     void skillSPUpdate(float dt);
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
+};
+
+class Yinhui :public Employee
+{
+public:
+    static Yinhui* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Yinhui);
+    void update(float dt);
+
+    void skillSPUpdate(float dt);
+    void skillAttrackUpdate(float dt);
+    void skillHealthUpdate(float dt);
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
+};
+
+class Baimianxiao :public Employee
+{
+public:
+    static Baimianxiao* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Baimianxiao);
+    void update(float dt);
+
+    void skillSPUpdate(float dt);
+    void skillAttrackUpdate(float dt);
+    void skillHealthUpdate(float dt);
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
+};
+
+class Nengtianshi :public Employee
+{
+public:
+    static Nengtianshi* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Nengtianshi);
+    void update(float dt);
+
+    void skillTouchAuto(float dt);
+    void skillSPUpdate(float dt);
+    void skillAttrackUpdate(float dt);
+    void skillHealthUpdate(float dt);
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
+};
+
+class Dekesasi :public Employee
+{
+public:
+    static Dekesasi* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Dekesasi);
+    void update(float dt);
+
+    void skillSPUpdate(float dt);
+    void skillAttrackUpdate(float dt);
+    void skillHealthUpdate(float dt);
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
+};
+
+class Taojinniang :public Employee
+{
+public:
+    static Taojinniang* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Taojinniang);
+    void update(float dt);
+
+    void skillSPUpdate(float dt);
+    void skillCUpdate(float dt);
+    void skillHealthUpdate(float dt);
     void skillOverUpdate(float dt);
     void releaseSkillAnimation();
 };
