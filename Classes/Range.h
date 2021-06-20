@@ -53,6 +53,27 @@ Vec2 naiduncure[21] = { Vec2(0,0),Vec2(0,1),Vec2(0,2) ,Vec2(0,-1) ,Vec2(0,-2) ,V
 
 
 
+int fajinweiRange = 2;
+Vec2 fajinwei[5][2] =
+{
+	{},
+	{Vec2(0,0),Vec2(-1,0)},
+	{Vec2(0,0),Vec2(1,0)},
+	{Vec2(0,0),Vec2(0,1)},
+	{Vec2(0,0),Vec2(0,-1)}
+};
+int huanghunRange = 4;
+Vec2 huanghun[5][4] =
+{
+	{},
+	{Vec2(0,0),Vec2(-1,0),Vec2(-2,0),Vec2(-3,0)},
+	{Vec2(0,0),Vec2(1,0),Vec2(2,0),Vec2(3,0)},
+	{Vec2(0,0),Vec2(0,1),Vec2(0,2),Vec2(0,3)},
+	{Vec2(0,0),Vec2(0,-1),Vec2(0,-2),Vec2(0,-3)}
+};
+
+
+
 Vec2 suju[5][12] =
 {
 	{},

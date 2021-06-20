@@ -20,6 +20,8 @@ class Enemy;
 #define QUNNAI 4
 #define NAIDUN_ATTACK 5
 #define NAIDUN_CURE 6
+#define FAJINWEI 7
+#define HUANGHUN 8
 
 #define getLength(vec) static_cast<float>(std::sqrt(static_cast<double>(vec.x)*vec.x+static_cast<double>(vec.y)*vec.y))
 
@@ -176,6 +178,25 @@ public:
     void skillHealthUpdate(float dt);
     void skillOverUpdate(float dt);
     void releaseSkillAnimation();
+};
+
+class Shierteer :public Employee
+{
+public:
+    static Shierteer* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Shierteer);
+    void update(float dt);
+
+    void shierteerStateUpdate(float dt);
+    void skillHealthUpdate(float dt);
+    void die(float dt);
+protected:
+    bool isskilled = false;
+    bool suoxue = false;
 };
 
 #endif
