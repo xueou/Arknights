@@ -18,6 +18,8 @@ class Enemy;
 #define ZHONGZHUANG 2
 #define DANNAI 3
 #define QUNNAI 4
+#define NAIDUN_ATTACK 5
+#define NAIDUN_CURE 6
 
 #define getLength(vec) static_cast<float>(std::sqrt(static_cast<double>(vec.x)*vec.x+static_cast<double>(vec.y)*vec.y))
 
@@ -61,6 +63,7 @@ public:
     virtual bool initWithFile(const char* filename);
     void initAnimation();
     void releaseAnimation();
+    virtual void releaseSkillAnimation();
     virtual void initSkillAnimation() = 0;
     virtual void skill() = 0;
     void loadingBlood();
@@ -91,6 +94,8 @@ protected:
     int healthMAX, spMAX, attrack, blockNumber, attrackNumber, attrackSpeed, attrackRange;
     //攻击间隔、技能持续时间
     float attrackInterval, skillTime;
+    //是否技能自动开启
+    bool isSkillAuto;
     //格子位置坐标
     Vec2 positionXY;
     //地面/高台、法伤/物伤/奶、能攻击的敌人类型、能阻挡的敌人类型
@@ -133,6 +138,7 @@ public:
     void skillAttrackUpdate(float dt);
     void skillHealthUpdate(float dt);
     void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
 };
 
 class Xingxiong :public Employee
@@ -150,6 +156,26 @@ public:
     void skillAttrackUpdate(float dt);
     void skillHealthUpdate(float dt);
     void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
+};
+
+class Saileiya :public Employee
+{
+public:
+    static Saileiya* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    bool initWithFile(const char* filename);
+    void initSkillAnimation();
+    void skill();
+
+    CREATE_SPIRITE(Saileiya);
+    void update(float dt);
+
+    void skillTouchAuto(float dt);
+    void skillSPUpdate(float dt);
+    void skillAttrackUpdate(float dt);
+    void skillHealthUpdate(float dt);
+    void skillOverUpdate(float dt);
+    void releaseSkillAnimation();
 };
 
 #endif

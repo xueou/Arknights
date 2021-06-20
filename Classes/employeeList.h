@@ -5,6 +5,7 @@
 
 #define aiyafala 1
 #define xingxiong 2
+#define saileiya 3
 
 #define CREATE_SPIRITE(__TYPE__) \
 static __TYPE__* create(const char *filename) \
@@ -326,6 +327,13 @@ void employeeList<T>::employeeCreate(int direction0, Vec2 position, Vec2 positio
             MapInformation::getInstance()->allEmployeeInMap.pushBack(xingxiong0);
             AudioEngine::play2d(".\\employee\\xingxiong\\putting.mp3");
             mapscene->addChild(xingxiong0); }
+            break;
+        case saileiya: {
+            auto saileiya0 = Saileiya::createSprite(StringUtils::format(".\\employee\\saileiya\\saileiya%d.png", ((direction0 == left || direction0 == front) ? (1) : (2))).c_str(), direction0, position, positionXY);
+            saileiya0->setAnchorPoint(Vec2(0.5f, 0.25f));
+            MapInformation::getInstance()->allEmployeeInMap.pushBack(saileiya0);
+            AudioEngine::play2d(".\\employee\\saileiya\\putting.mp3");
+            mapscene->addChild(saileiya0); }
             break;
     }
     mapscene->setRemainPuttingNumber(mapscene->getRemainPuttingNumber() - 1);

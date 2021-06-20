@@ -94,6 +94,13 @@ void Employee::releaseAnimation()
     idle2->release();
     die1->release();
     die2->release();
+
+    releaseSkillAnimation();
+}
+
+void Employee::releaseSkillAnimation()
+{
+
 }
 
 void Employee::loadingBlood()
@@ -226,7 +233,7 @@ void Employee::attrackSelectedEnemy()
     {
         for (Employee* p : this->selectedEmployee)
         {
-            p->health += this->attrack;
+            p->health = (p->health + this->attrack > p->healthMAX) ? (p->healthMAX) : (p->health + this->attrack);
         }
     }
 }
@@ -239,6 +246,8 @@ bool Employee::searchEnemy()
             return this->searchEnemyByType(danfa[direction0],danfaRange);
         case ZHONGZHUANG:
             return this->searchEnemyByType(zhongzhuang[direction0], zhongzhuangRange);
+        case NAIDUN_ATTACK:
+            return this->searchEnemyByType(naidunattrack[direction0], naidunattrackRange);
     }
     return false;
 }
@@ -375,7 +384,7 @@ bool Employee::searchEnemyByType(Vec2 range[12], int rangeNum)
         {
             for (int i = 0; i < rangeNum; i++)
             {
-                if (range[i] + this->positionXY == employee0->positionXY)
+                if ((range[i] + this->positionXY == employee0->positionXY) && (employee0->health< employee0->healthMAX))
                 {
                     if (this->selectedEmployee.size() < attrackNumber)
                     {
@@ -413,6 +422,8 @@ int Employee::getEmployeeListType()                /***************记得补全*****
         return 1;
     else if (name == "xingxiong")
         return 2;
+    else if (name == "saileiya")
+        return 3;
 }
 
 void Employee::addSkillList()
@@ -529,7 +540,7 @@ void Employee::addSkillList()
             listener3->setSwallowTouches(true);
             listener3->onTouchBegan = [this,skillbackground](Touch* touch, Event* event) {
                 if (Rect(skillbackground->getPosition().x - skillbackground->getContentSize().width / 2.0f, skillbackground->getPosition().y - skillbackground->getContentSize().height / 2.0f,
-                    skillbackground->getContentSize().width, skillbackground->getContentSize().height).containsPoint(touch->getLocation())&&this->sp==this->spMAX)
+                    skillbackground->getContentSize().width, skillbackground->getContentSize().height).containsPoint(touch->getLocation()) && this->sp==this->spMAX && this->isSkillAuto==false)
                     return true;
                 else
                     return false;
@@ -727,6 +738,7 @@ bool Aiyafala::initWithFile(const char* filename)
     attrackRange = DANFA;
     attrackInterval = 1.6f;
     skillTime = 15.0f;
+    isSkillAuto = false;
     positionType = up;
     damageType = magical;
     selectedType = upanddown;
@@ -861,12 +873,7 @@ void Aiyafala::skillOverUpdate(float dt)
     unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillAttrackUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillHealthUpdate));
 
-    beforeskill1->release();
-    beforeskill2->release();
-    duringskill1->release();
-    duringskill2->release();
-    afterskill1->release();
-    afterskill2->release();
+    
 
     lastState = employeeStateIdle;
     presentState = employeeStateIdle;
@@ -878,6 +885,16 @@ void Aiyafala::skillOverUpdate(float dt)
     schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     scheduleUpdate();
     
+}
+
+void Aiyafala::releaseSkillAnimation()
+{
+    beforeskill1->release();
+    beforeskill2->release();
+    duringskill1->release();
+    duringskill2->release();
+    afterskill1->release();
+    afterskill2->release();
 }
 
 
@@ -905,6 +922,7 @@ bool Xingxiong::initWithFile(const char* filename)
     attrackRange = ZHONGZHUANG;
     attrackInterval = 1.2f;
     skillTime = 25.0f;
+    isSkillAuto = false;
     positionType = down;
     damageType = phisical;
     selectedType = down;
@@ -1039,12 +1057,7 @@ void Xingxiong::skillOverUpdate(float dt)
     unschedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillAttrackUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillHealthUpdate));
 
-    beforeskill1->release();
-    beforeskill2->release();
-    duringskill1->release();
-    duringskill2->release();
-    afterskill1->release();
-    afterskill2->release();
+
 
     lastState = employeeStateIdle;
     presentState = employeeStateIdle;
@@ -1056,4 +1069,196 @@ void Xingxiong::skillOverUpdate(float dt)
     schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     scheduleUpdate();
 
+}
+
+void Xingxiong::releaseSkillAnimation()
+{
+    beforeskill1->release();
+    beforeskill2->release();
+    duringskill1->release();
+    duringskill2->release();
+    afterskill1->release();
+    afterskill2->release();
+}
+
+
+
+
+bool Saileiya::initWithFile(const char* filename)
+{
+    if (!Employee::initWithFile(filename))
+    {
+        return false;
+    }
+    /************基础数据初始化*********/
+    name = "saileiya";
+    healthMAX = 3150;
+    health = 3150;
+    spMAX = 7;
+    sp = 0;
+    attrack = 535;
+    defend = 682;
+    magicDefend = 10;
+    blockNumber = 3;
+    remainBlockNumber = 3;
+    attrackNumber = 1;
+    attrackSpeed = 100;
+    attrackRange = NAIDUN_ATTACK;
+    attrackInterval = 1.2f;
+    skillTime = 1.0f;
+    isSkillAuto = true;
+    positionType = down;
+    damageType = phisical;
+    selectedType = down;
+    blockedType = down;
+    attackNum = 31;
+    dieNum = 18;
+    idleNum = 37;
+    startNum = 13;
+    attackReachNum = 22;
+    //技能参数不同干员需要哪些单独初始化
+    skillNum = 25;
+
+    /***********************************/
+
+    initAnimation();
+
+    schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    schedule(CC_SCHEDULE_SELECTOR(Saileiya::skillTouchAuto));
+    scheduleUpdate();
+
+    return true;
+}
+
+Saileiya* Saileiya::createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY)
+{
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    auto p = Saileiya::create(filename);
+
+    p->setDirection0(direction0);
+    p->setPosition(Vec2(origin.x, origin.y) + position);
+    p->positionXY = positionXY;
+
+    p->initSkillAnimation();
+    p->addSkillList();
+
+    return p;
+}
+
+void Saileiya::initSkillAnimation()
+{
+    this->skill1 = Employee::createAnimate(1, name.c_str(), "skill", skillNum, 1, 0.04f);
+    this->skill2 = Employee::createAnimate(2, name.c_str(), "skill", skillNum, 1, 0.04f);
+    skill1->retain();
+    skill2->retain();
+}
+
+void Saileiya::skill()
+{
+    unschedule(CC_SCHEDULE_SELECTOR(Saileiya::skillTouchAuto));
+    unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    unscheduleUpdate();
+
+    attrack = 749;
+    this->stopActionByTag(presentState);
+    auto animation = Animate::create((direction0 == left || direction0 == front) ? (skill1) : (skill2));
+    this->runAction(animation);
+
+    schedule(CC_SCHEDULE_SELECTOR(Saileiya::skillSPUpdate), skillTime / static_cast<float>(spMAX));
+    scheduleOnce(CC_SCHEDULE_SELECTOR(Saileiya::skillAttrackUpdate), 0.8f);
+    schedule(CC_SCHEDULE_SELECTOR(Saileiya::skillHealthUpdate));
+
+    scheduleOnce(CC_SCHEDULE_SELECTOR(Saileiya::skillOverUpdate), skillTime);
+}
+
+void Saileiya::update(float dt)
+{
+    Employee::update(dt);
+}
+
+void Saileiya::skillTouchAuto(float dt)
+{
+    if (sp == spMAX)
+    {
+        attrackRange = QUNNAI;
+        if (searchEnemyByType(naiduncure, naiduncureRange))
+        {
+            AudioEngine::play2d(".\\employee\\" + name + "\\skill.mp3");
+            this->skill();
+        }
+        attrackRange = NAIDUN_ATTACK;
+    }
+}
+
+void Saileiya::skillSPUpdate(float dt)
+{
+    if (sp > 0)
+        sp--;
+}
+
+void Saileiya::skillAttrackUpdate(float dt)
+{
+    attrackRange = QUNNAI;
+    attrackSelectedEnemy();
+    attrackRange = NAIDUN_ATTACK;
+}
+
+void Saileiya::skillHealthUpdate(float dt)
+{
+    if (health <= 0)
+    {
+        this->stopAllActions();
+        auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
+        auto callbackDie = CallFunc::create([this]() {
+            auto map = dynamic_cast<MapScene*>(this->getParent());
+            this->releaseAnimation();
+            this->removeFromParent();
+
+            auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
+            auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
+
+            map->setRemainPuttingNumber(map->getRemainPuttingNumber() + 1);
+            /*******************再部署时间******************/
+            employeelist->reputtingLoading();
+
+            releaseAllBlockedEnemy();//释放阻挡敌人
+
+            employeelist->setOpacity(100);
+            employeelist->setIsadded(false);
+            employeelist->setReputNum(employeelist->getReputNum() + 1);
+
+            MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
+            });
+        this->runAction(Sequence::create(animation, callbackDie, nullptr));
+    }
+}
+
+void Saileiya::skillOverUpdate(float dt)
+{
+    attrack = 535;
+
+    unschedule(CC_SCHEDULE_SELECTOR(Saileiya::skillSPUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Saileiya::skillAttrackUpdate));
+    unschedule(CC_SCHEDULE_SELECTOR(Saileiya::skillHealthUpdate));
+
+
+
+    lastState = employeeStateIdle;
+    presentState = employeeStateIdle;
+    auto animation = Animate::create((direction0 == left || direction0 == front) ? (idle1) : (idle2));
+    animation->setTag(employeeStateIdle);
+    this->runAction(animation);
+
+    schedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate), 1.0f);
+    schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    schedule(CC_SCHEDULE_SELECTOR(Saileiya::skillTouchAuto));
+    scheduleUpdate();
+
+}
+
+void Saileiya::releaseSkillAnimation()
+{
+    skill1->release();
+    skill2->release();
 }
