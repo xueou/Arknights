@@ -87,7 +87,7 @@ void Enemy::initAnimation()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_enemyStateDieListener, this);*/
 }
 
-Employee* Enemy::searchEmployee()
+bool Enemy::searchEmployee()
 {
     this->selectedEmployee.clear();
     int index = -1;   
@@ -101,10 +101,13 @@ Employee* Enemy::searchEmployee()
             index = MapInformation::getInstance()->allEmployeeInMap.getIndex(employee0);
         }
     }
-    if (index != -1)
-        return MapInformation::getInstance()->allEmployeeInMap.at(index);
+    if (index != -1) 
+    {
+        selectedEmployee.pushBack(MapInformation::getInstance()->allEmployeeInMap.at(index));
+        return true;
+    }
     else
-        return nullptr;
+        return false;
 }
 
 void Enemy::attrackBlocked()
@@ -161,6 +164,12 @@ void Enemy::getPositionArray(Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
     }
 }
 
+void Enemy::getIntervalArray(float p[maxpositionarray])
+{
+    for (int i = 0; i < maxpositionarray; i++)
+        interval[i] = p[i];
+}
+
 Animation* Enemy::createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit)
 {
     /*auto m_frameCache = SpriteFrameCache::getInstance();
@@ -188,12 +197,24 @@ Animation* Enemy::createAnimate(int direction, const char* name, const char* act
     return animation;
 }
 
+void Enemy::idleForInterval(float ddt)
+{
+    unschedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+    presentState = enemyStateIdle;
+
+    scheduleOnce(CC_SCHEDULE_SELECTOR(Enemy::recoverPositionUpdate), ddt);
+}
+
+void Enemy::recoverPositionUpdate(float dt)
+{
+    schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+}
+
 void Enemy::movingAttrackUpdate(float dt)
 {
-    auto goal = searchEmployee();
-    if (goal != nullptr)
+    if (searchEmployee())
     {
-        if (isblocked == false)
+        /*if (isblocked == false)
         {
             stopActionByTag(enemyPingYi);
             stopActionByTag(enemyStateMove);
@@ -208,7 +229,16 @@ void Enemy::movingAttrackUpdate(float dt)
                 this->setPresentState(enemyStateNone);
             });
         auto animation = Sequence::create(animation0, callbackAttrack, nullptr);
-        this->runAction(animation);
+        this->runAction(animation);*/
+        if (presentState == enemyStateIdle)
+        {
+            presentState = enemyStateAttackOnce;
+        }
+        else if (presentState == enemyStateMove)
+        {
+            this->stopActionByTag(enemyPingYi);
+            presentState = enemyStateAttackOnce;
+        }
     }
 }
 
@@ -246,6 +276,15 @@ void Enemy::positionUpdate(float dt)
         {
             pointNow++;
             ismoving = false;
+            presentState = enemyStateNone;
+
+            if (withInterval == true)
+            {
+                if (interval[pointNow] != 0)
+                {
+                    idleForInterval(interval[pointNow]);
+                }
+            }
             //this->stopActionByTag(1);
             if (pointNow == pointNum)
             {
@@ -341,10 +380,11 @@ void Enemy::stateUpdate(float dt)
                 }
                 else
                 {
-                    if (isblocked == true)                               //这个逻辑要调试
+                    if (isblocked == true && (lastState!= enemyStateAttackOnce))
                     {
-                        stopActionByTag(enemyPingYi);
-                        stopActionByTag(enemyStateMove);
+                        presentState = enemyStateIdle;
+                        if (lastState == enemyStateMove)
+                            stopActionByTag(enemyPingYi);
                     }
                 }
             }
@@ -392,6 +432,16 @@ void Enemy::update(float dt)
             
             switch (presentState)
             {
+                case enemyStateNone:
+                    this->stopActionByTag(lastState);
+                    break;
+                case enemyStateIdle: {
+                    if (lastState != enemyStateNone)
+                        this->stopActionByTag(lastState);
+                    auto animation = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (idle1) : (idle2));
+                    animation->setTag(enemyStateIdle);
+                    this->runAction(animation); }
+                    break;
                 case enemyStateMove: {
                     if(lastState!= enemyStateNone)
                         this->stopActionByTag(lastState);
@@ -399,8 +449,23 @@ void Enemy::update(float dt)
                     animation->setTag(enemyStateMove);
                     this->runAction(animation); }
                     break;
+                case enemyStateAttackOnce:{
+                    if (lastState != enemyStateNone)
+                        this->stopActionByTag(lastState);
+                    auto animation0 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (attack1once) : (attack2once));
+                    auto callbackAttackOnce = CallFunc::create([this]() {
+                        this->attrackSelected(selectedEmployee.at(0));
+                        this->ismoving = false;
+                        if (this->isblocked == true)
+                            this->setPresentState(enemyStateIdle);
+                        });
+                    auto animation = Sequence::create(animation0, callbackAttackOnce, nullptr);
+                    animation->setTag(enemyStateAttackOnce);
+                    this->runAction(animation);}
+                    break;
                 case enemyStateAttackKeep: {
-                    this->stopActionByTag(lastState);
+                    if (lastState != enemyStateNone)
+                        this->stopActionByTag(lastState);
                     auto animation0 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (attack1keep) : (attack2keep));
                     auto callbackAttackKeep = CallFunc::create([this]() {
                         this->attrackBlocked();
@@ -426,6 +491,7 @@ void Enemy::update(float dt)
                             this->isBlockedBy->setRemainBlockNumber(this->isBlockedBy->getRemainBlockNumber() + this->blockNumber);
                         }
 
+                        this->unscheduleAllCallbacks();
                         this->removeFromParent();
                         this->setIsadded(false);
                         });
@@ -490,7 +556,7 @@ bool shibing::initWithFile(const char* filename)
     scheduleUpdate();
 
     if(onlyAttrackWhenBlocked==false)
-        schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
+        schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
 
     return true;
 }
@@ -505,6 +571,14 @@ bool shibing::initWithFile(const char* filename)
      p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
      return p;
 }
+
+ shibing* shibing::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
 
  void shibing::update(float dt)
  {
@@ -552,7 +626,7 @@ bool shibing::initWithFile(const char* filename)
      scheduleUpdate();
 
      if (onlyAttrackWhenBlocked == false)
-         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
 
      return true;
  }
@@ -565,6 +639,14 @@ bool shibing::initWithFile(const char* filename)
      p->pointNow = 0;
      p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
      p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ yuanshichong* yuanshichong::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
      return p;
  }
 
@@ -614,7 +696,7 @@ bool shibing::initWithFile(const char* filename)
      scheduleUpdate();
 
      if (onlyAttrackWhenBlocked == false)
-         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
 
      return true;
  }
@@ -630,7 +712,462 @@ bool shibing::initWithFile(const char* filename)
      return p;
  }
 
+ ganranzhegaojijiuchaguan* ganranzhegaojijiuchaguan::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
+
  void ganranzhegaojijiuchaguan::update(float dt)
+ {
+     Enemy::update(dt);
+
+ }
+
+
+
+ bool wusasilieshouzumu::initWithFile(const char* filename)
+ {
+     if (!Enemy::initWithFile(filename))
+     {
+         return false;
+     }
+     /************基础数据初始化*********/
+     name = "wusasilieshouzumu";
+     healthMAX = 4600;
+     health = 4600;
+     attrack = 450;
+     defend = 100;
+     magicDefend = 20;
+     blockNumber = 1;
+     attrackSpeed = 100;
+     attrackInterval = 1.5f;
+     moveSpeed = 1.7f;
+     attrackR = 0.f;
+     positionType = down;
+     damageType = phisical;
+     onlyAttrackWhenBlocked = true;
+     isblocked = false;
+     ismoving = false;
+     attackNum = 27;
+     dieNum = 16;
+     idleNum = 53;
+     moveNum = 24;
+     attackReachNum = 16;
+     /***********************************/
+
+     initAnimation();
+
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
+
+     return true;
+ }
+
+ wusasilieshouzumu* wusasilieshouzumu::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
+ {
+     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+     auto p = wusasilieshouzumu::create(filename);
+     p->getPositionArray(a, b);
+     p->pointNow = 0;
+     p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
+     p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ wusasilieshouzumu* wusasilieshouzumu::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
+
+ void wusasilieshouzumu::update(float dt)
+ {
+     Enemy::update(dt);
+
+ }
+
+
+
+
+ bool wusasigaojizhuokaishushi::initWithFile(const char* filename)
+ {
+     if (!Enemy::initWithFile(filename))
+     {
+         return false;
+     }
+     /************基础数据初始化*********/
+     name = "wusasigaojizhuokaishushi";
+     healthMAX = 6500;
+     health = 6500;
+     attrack = 420;
+     defend = 500;
+     magicDefend = 50;
+     blockNumber = 1;
+     attrackSpeed = 100;
+     attrackInterval = 2.8f;
+     moveSpeed = 0.9f;
+     attrackR = 2.2f;
+     positionType = down;
+     damageType = magical;
+     onlyAttrackWhenBlocked = false;
+     isblocked = false;
+     ismoving = false;
+     attackNum = 34;
+     dieNum = 14;
+     idleNum = 37;
+     moveNum = 13;
+     attackReachNum = 25;
+     /***********************************/
+
+     initAnimation();
+
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
+
+     return true;
+ }
+
+ wusasigaojizhuokaishushi* wusasigaojizhuokaishushi::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
+ {
+     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+     auto p = wusasigaojizhuokaishushi::create(filename);
+     p->getPositionArray(a, b);
+     p->pointNow = 0;
+     p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
+     p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ wusasigaojizhuokaishushi* wusasigaojizhuokaishushi::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
+
+ void wusasigaojizhuokaishushi::update(float dt)
+ {
+     Enemy::update(dt);
+
+ }
+
+
+
+
+ bool diguoqianfengjingrui::initWithFile(const char* filename)
+ {
+     if (!Enemy::initWithFile(filename))
+     {
+         return false;
+     }
+     /************基础数据初始化*********/
+     name = "diguoqianfengjingrui";
+     healthMAX = 12000;
+     health = 12000;
+     attrack = 900;
+     defend = 800;
+     magicDefend = 50;
+     blockNumber = 1;
+     attrackSpeed = 100;
+     attrackInterval = 4.5f;
+     moveSpeed = 0.7f;
+     attrackR = 1.5f;
+     positionType = down;
+     damageType = phisical;
+     onlyAttrackWhenBlocked = false;
+     isblocked = false;
+     ismoving = false;
+     attackNum = 45;
+     dieNum = 14;
+     idleNum = 95;
+     moveNum = 57;
+     attackReachNum = 26;
+     /***********************************/
+
+     initAnimation();
+
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
+
+     schedule(CC_SCHEDULE_SELECTOR(diguoqianfengjingrui::attrackIncreasing));
+
+     return true;
+ }
+
+ diguoqianfengjingrui* diguoqianfengjingrui::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
+ {
+     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+     auto p = diguoqianfengjingrui::create(filename);
+     p->getPositionArray(a, b);
+     p->pointNow = 0;
+     p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
+     p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ diguoqianfengjingrui* diguoqianfengjingrui::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
+
+ void diguoqianfengjingrui::update(float dt)
+ {
+     Enemy::update(dt);
+
+ }
+
+ void diguoqianfengjingrui::attrackIncreasing(float dt)
+ {
+     if (health < healthMAX)
+     {
+         attrack = attrack * 2;
+         unschedule(CC_SCHEDULE_SELECTOR(diguoqianfengjingrui::attrackIncreasing));
+     }
+ }
+
+
+
+
+ bool diguoqianfengbaizhanjingrui::initWithFile(const char* filename)
+ {
+     if (!Enemy::initWithFile(filename))
+     {
+         return false;
+     }
+     /************基础数据初始化*********/
+     name = "diguoqianfengbaizhanjingrui";
+     healthMAX = 15000;
+     health = 15000;
+     attrack = 1200;
+     defend = 800;
+     magicDefend = 50;
+     blockNumber = 1;
+     attrackSpeed = 100;
+     attrackInterval = 4.5f;
+     moveSpeed = 0.7f;
+     attrackR = 1.5f;
+     positionType = down;
+     damageType = phisical;
+     onlyAttrackWhenBlocked = false;
+     isblocked = false;
+     ismoving = false;
+     attackNum = 43;
+     dieNum = 13;
+     idleNum = 99;
+     moveNum = 18;
+     attackReachNum = 25;
+     /***********************************/
+
+     initAnimation();
+
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
+
+     schedule(CC_SCHEDULE_SELECTOR(diguoqianfengbaizhanjingrui::attrackIncreasing));
+
+     return true;
+ }
+
+ diguoqianfengbaizhanjingrui* diguoqianfengbaizhanjingrui::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
+ {
+     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+     auto p = diguoqianfengbaizhanjingrui::create(filename);
+     p->getPositionArray(a, b);
+     p->pointNow = 0;
+     p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
+     p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ diguoqianfengbaizhanjingrui* diguoqianfengbaizhanjingrui::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
+
+ void diguoqianfengbaizhanjingrui::update(float dt)
+ {
+     Enemy::update(dt);
+
+ }
+
+ void diguoqianfengbaizhanjingrui::attrackIncreasing(float dt)
+ {
+     if (health < healthMAX)
+     {
+         attrack = attrack * 2;
+         unschedule(CC_SCHEDULE_SELECTOR(diguoqianfengbaizhanjingrui::attrackIncreasing));
+     }
+ }
+
+
+
+
+ bool diguopaohuozhongshuxianzhaozhe::initWithFile(const char* filename)
+ {
+     if (!Enemy::initWithFile(filename))
+     {
+         return false;
+     }
+     /************基础数据初始化*********/
+     name = "diguopaohuozhongshuxianzhaozhe";
+     healthMAX = 16000;
+     health = 16000;
+     attrack = 1200;
+     defend = 800;
+     magicDefend = 50;
+     blockNumber = 1;
+     attrackSpeed = 100;
+     attrackInterval = 5.0f;
+     moveSpeed = 0.5f;
+     attrackR = 2.0f;
+     positionType = up;
+     damageType = phisical;
+     onlyAttrackWhenBlocked = false;
+     isblocked = false;
+     ismoving = false;
+     attackNum = 24;
+     dieNum = 14;
+     idleNum = 30;
+     moveNum = 26;
+     attackReachNum = 20;
+     /***********************************/
+
+     initAnimation();
+
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate), attrackInterval);
+
+     return true;
+ }
+
+ diguopaohuozhongshuxianzhaozhe* diguopaohuozhongshuxianzhaozhe::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
+ {
+     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+     auto p = diguopaohuozhongshuxianzhaozhe::create(filename);
+     p->getPositionArray(a, b);
+     p->pointNow = 0;
+     p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
+     p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ diguopaohuozhongshuxianzhaozhe* diguopaohuozhongshuxianzhaozhe::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
+
+ void diguopaohuozhongshuxianzhaozhe::update(float dt)
+ {
+     Enemy::update(dt);
+
+ }
+
+
+
+
+ bool huangdideliren::initWithFile(const char* filename)
+ {
+     if (!Enemy::initWithFile(filename))
+     {
+         return false;
+     }
+     /************基础数据初始化*********/
+     name = "huangdideliren";
+     healthMAX = 28000;
+     health = 28000;
+     attrack = 600;
+     defend = 400;
+     magicDefend = 40;
+     blockNumber = 2;
+     attrackSpeed = 100;
+     attrackInterval = 4.0f;
+     moveSpeed = 0.6f;
+     attrackR = 0.f;
+     positionType = down;
+     damageType = phisical;
+     onlyAttrackWhenBlocked = false;
+     isblocked = false;
+     ismoving = false;
+     attackNum = 27;
+     dieNum = 16;
+     idleNum = 53;
+     moveNum = 24;
+     attackReachNum = 16;
+     /***********************************/
+
+     initAnimation();
+
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
+
+     if (onlyAttrackWhenBlocked == false)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
+
+     return true;
+ }
+
+ huangdideliren* huangdideliren::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray])
+ {
+     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+     auto p = huangdideliren::create(filename);
+     p->getPositionArray(a, b);
+     p->pointNow = 0;
+     p->setPosition(Vec2(origin.x, origin.y) + p->positionArray[0]);
+     p->positionNow = Vec2(origin.x, origin.y) + p->positionArray[0];
+     return p;
+ }
+
+ huangdideliren* huangdideliren::createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray])
+ {
+     auto p = createSprite(filename, a, b);
+     p->withInterval = true;
+     p->getIntervalArray(interval);
+     return p;
+ }
+
+ void huangdideliren::update(float dt)
  {
      Enemy::update(dt);
 

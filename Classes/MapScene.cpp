@@ -377,7 +377,7 @@ void MapScene3::mapinit(int mapangle[4][2])
 {
     for (int x = 0; x < 11; x++)
         for (int y = 0; y < 8; y++)
-            map[x][y].position = Vec2(static_cast<float>(mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y + ((mapangle[1][0] - (mapangle[1][0] - mapangle[3][0]) / 7.f * y) - (mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y)) / 10.f * x), static_cast<float>(mapangle[0][1] + (mapangle[2][1] - mapangle[0][1]) / 6.f * y));
+            map[x][y].position = Vec2(static_cast<float>(mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y + ((mapangle[1][0] - (mapangle[1][0] - mapangle[3][0]) / 7.f * y) - (mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y)) / 10.f * x), static_cast<float>(mapangle[0][1] + (mapangle[2][1] - mapangle[0][1]) / 5.9f * y));
 }
 
 bool MapScene3::init()
@@ -443,6 +443,39 @@ bool MapScene3::init()
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan2), 8.0f, 2, 15.0f);
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan3), 7.0f, 1, 27.0f);
 
+    for (int i = 9; i < 24; i++)//15Иіам
+    {
+        if (i < 12)
+            MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, right, positionArray1, positionXYArray1);
+        else if (i < 15)
+            MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray2, positionXYArray2);
+        else if (i < 18)
+            MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray3, positionXYArray3);
+        else if (i < 21)
+        {
+            if (i == 18)
+                MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray4, positionXYArray4, interval4);
+            else
+                MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray4, positionXYArray4);
+        }
+        else
+        {
+            if (i == 21)
+                MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, right, positionArray5, positionXYArray5, interval5);
+            else
+                MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, right, positionArray5, positionXYArray5);
+        }
+    }
+
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu1), 11.0f, 2, 60.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu2), 11.0f, 2, 60.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu3), 11.0f, 2, 60.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu4), 48.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu5), 11.0f, 1, 71.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu6), 48.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu7), 11.0f, 1, 71.0f);
+
+    
 
     scheduleUpdate();
 
@@ -483,4 +516,68 @@ void MapScene3::updateGanranzhegaojijiuchaguan3(float dt)
     num += 1;
     if (num == 9)
         num = 7;
+}
+
+
+
+void MapScene3::updateWusasilieshouzumu1(float dt)
+{
+    static int num = 9;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 12)
+        num = 9;
+}
+
+void MapScene3::updateWusasilieshouzumu2(float dt)
+{
+    static int num = 12;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 15)
+        num = 12;
+}
+
+void MapScene3::updateWusasilieshouzumu3(float dt)
+{
+    static int num = 15;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 18)
+        num = 15;
+}
+
+void MapScene3::updateWusasilieshouzumu4(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(18)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(18));
+}
+
+void MapScene3::updateWusasilieshouzumu5(float dt)
+{
+    static int num = 19;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 21)
+        num = 19;
+}
+
+void MapScene3::updateWusasilieshouzumu6(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(21)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(21));
+}
+
+void MapScene3::updateWusasilieshouzumu7(float dt)
+{
+    static int num = 22;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 24)
+        num = 22;
 }

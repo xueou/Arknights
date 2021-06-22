@@ -19,7 +19,7 @@ typedef enum {
 	enemyStateAttackKeep,
 	enemyStateMove,
 	enemyStateDie,
-	enemyPingYi//此状态只为了给平移动作设tag
+	enemyPingYi//此状态并非实际状态（平移始终与move状态绑定），只是为了给平移动作设tag
 }EnemyState;
 
 //考虑到阻挡因素，实际action时起始点不一定在路径拐点上，故需根据实际像素坐标差、理论像素坐标差、理论格子数计算该动作实际格子数
@@ -56,19 +56,22 @@ public:
 	void initAnimation();
 	void releaseAnimation();
 
-	//赋予对象移动路径
+	//赋予对象移动路径、停顿时间
 	void getPositionArray(Vec2 a[maxpositionarray],Vec2 b[maxpositionarray]);
+	void getIntervalArray(float p[maxpositionarray]);
 	//获得动画
 	Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit);
 	void loadingBlood();
-	Employee* searchEmployee();
+	bool searchEmployee();
 	void getIsBlockedBy(Employee* p);
 	void attrackBlocked();
 	void attrackSelected(Employee* p);
 	
+	void idleForInterval(float ddt);
 	void movingAttrackUpdate(float dt);
 	void bloodUpdate(float dt);
 	void positionUpdate(float dt);
+	void recoverPositionUpdate(float dt);
 	void positionXYUpdate(float dt);
 	void stateUpdate(float dt);
 	void update(float dt);
@@ -77,6 +80,8 @@ public:
 	Vec2 positionArray[maxpositionarray] = {}; 
 	//路线所属格子xy坐标
 	Vec2 positionXYArray[maxpositionarray] = {};
+	//路线每点停顿时间
+	float interval[maxpositionarray] = {};
 	//数组中实际存放点数（计数从0开始）、当下已经过的点数
 	int pointNum = -1, pointNow;
 	//当下所处实际xy格子坐标
@@ -90,8 +95,8 @@ protected:
 	int healthMAX, attrack, attrackSpeed, damageType;
 	//移动速度、攻击间隔、远程攻击半径（格子数）
 	float moveSpeed, attrackInterval, attrackR;
-	//是否只有被阻挡时才攻击	
-	bool onlyAttrackWhenBlocked;
+	//是否只有被阻挡时才攻击、路径中是否存在停顿	
+	bool onlyAttrackWhenBlocked, withInterval = false;
 	//锁定的攻击干员
 	Vector<Employee*> selectedEmployee;
 	//动作
@@ -116,6 +121,7 @@ class shibing :public Enemy
 {
 public:
 	static shibing* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static shibing* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
 	bool initWithFile(const char* filename);
 	CREATE_SPIRITE(shibing);
 	void update(float dt);
@@ -127,17 +133,83 @@ class yuanshichong :public Enemy
 {
 public:
 	static yuanshichong* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static yuanshichong* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
 	bool initWithFile(const char* filename);
 	CREATE_SPIRITE(yuanshichong);
 	void update(float dt);
 };
-//ganranzhegaojijiuchaguan
+
 class ganranzhegaojijiuchaguan :public Enemy
 {
 public:
 	static ganranzhegaojijiuchaguan* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static ganranzhegaojijiuchaguan* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
 	bool initWithFile(const char* filename);
 	CREATE_SPIRITE(ganranzhegaojijiuchaguan);
+	void update(float dt);
+};
+
+class wusasilieshouzumu :public Enemy
+{
+public:
+	static wusasilieshouzumu* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static wusasilieshouzumu* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray],float interval[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(wusasilieshouzumu);
+	void update(float dt);
+};
+
+class wusasigaojizhuokaishushi :public Enemy
+{
+public:
+	static wusasigaojizhuokaishushi* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static wusasigaojizhuokaishushi* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(wusasigaojizhuokaishushi);
+	void update(float dt);
+};
+
+class diguoqianfengjingrui :public Enemy
+{
+public:
+	static diguoqianfengjingrui* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static diguoqianfengjingrui* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(diguoqianfengjingrui);
+	void update(float dt);
+
+	void attrackIncreasing(float dt);
+};
+
+class diguoqianfengbaizhanjingrui :public Enemy
+{
+public:
+	static diguoqianfengbaizhanjingrui* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static diguoqianfengbaizhanjingrui* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(diguoqianfengbaizhanjingrui);
+	void update(float dt);
+
+	void attrackIncreasing(float dt);
+};
+
+class diguopaohuozhongshuxianzhaozhe :public Enemy
+{
+public:
+	static diguopaohuozhongshuxianzhaozhe* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static diguopaohuozhongshuxianzhaozhe* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(diguopaohuozhongshuxianzhaozhe);
+	void update(float dt);
+};
+
+class huangdideliren :public Enemy
+{
+public:
+	static huangdideliren* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
+	static huangdideliren* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
+	bool initWithFile(const char* filename);
+	CREATE_SPIRITE(huangdideliren);
 	void update(float dt);
 };
 

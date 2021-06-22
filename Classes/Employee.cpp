@@ -1214,6 +1214,7 @@ void Saileiya::skill()
     unscheduleUpdate();
 
     attrack = 749;
+    attrackNumber = 20;
     this->stopActionByTag(presentState);
     auto animation = Animate::create((direction0 == left || direction0 == front) ? (skill1) : (skill2));
     this->runAction(animation);
@@ -1290,6 +1291,7 @@ void Saileiya::skillHealthUpdate(float dt)
 void Saileiya::skillOverUpdate(float dt)
 {
     attrack = 535;
+    attrackNumber = 1;
 
     unschedule(CC_SCHEDULE_SELECTOR(Saileiya::skillSPUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Saileiya::skillAttrackUpdate));
@@ -2227,6 +2229,7 @@ void Nengtianshi::skillOverUpdate(float dt)
 
     schedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate), 1.0f);
     schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
+    schedule(CC_SCHEDULE_SELECTOR(Nengtianshi::skillTouchAuto));
     scheduleUpdate();
 
 }

@@ -8,6 +8,12 @@
 #define SHIBING 1
 #define YUANSHICHONG 2
 #define GANRANZHEGAOJIJIUCHAGUAN 3
+#define WUSASILIESHOUZUMU 4
+#define WUSASIGAOJIZHUOKAISHUSHI 5
+#define HUANGDIDELIREN 6
+#define DIGUOQIANFENGJINGRUI 7
+#define DIGUOQIANFENGBAIZHANJINGRUI 8
+#define DIGUOPAOHUOZHONGSHUXIANZHAOZHE 9
 
 #ifndef _MAPINFORMATION_H_
 #define _MAPINFORMATION_H_
@@ -23,7 +29,7 @@ public:
 
 	static MapInformation* getInstance();
 	void addEnemy(int type, int direction, Vec2 positionArray[maxpositionarray], Vec2 positionXYArray[maxpositionarray]);
-	//void addList(employeeList<map>* list);
+	void addEnemy(int type, int direction, Vec2 positionArray[maxpositionarray], Vec2 positionXYArray[maxpositionarray], float interval[maxpositionarray]);
 	static void eraseAll();
 private:
 	static MapInformation* instance;
