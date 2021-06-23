@@ -64,7 +64,7 @@ public:
 	void loadingBlood();
 	bool searchEmployee();
 	void getIsBlockedBy(Employee* p);
-	void attrackBlocked();
+	virtual void attrackBlocked();
 	void attrackSelected(Employee* p);
 	
 	void idleForInterval(float ddt);
@@ -212,11 +212,15 @@ public:
 	void initAnimation();
 	void releaseAnimation();
 	CREATE_SPIRITE(huangdideliren);
+	void attrackBlocked();
 	void update(float dt);
+	void stateUpdate(float dt);
 
     Vec2 searchForGuodu();
 	bool searchForEmployee();
 	void skillGuodu(Vec2 center);
+	void skillRecover();
+	void unbeatableOver(float dt);
 
 	void skillTansuo(float dt);
 	void guoduRecover(float dt);
@@ -230,6 +234,7 @@ protected:
 	Animation* guodu1, * guodu2, * skill1, * skill2, * beforerecover1, * beforerecover2, * duringrecover1, * duringrecover2, * afterrecover1, * afterrecover2;
 	int guoduNum, skillNum, beforerecoverNum, duringrecoverNum, afterrecoverNum;
 	float recoverTime, guoduTime, skillTime;
+	bool isrecovered = false;
 };
 
 #endif

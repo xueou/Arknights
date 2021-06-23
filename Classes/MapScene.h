@@ -128,9 +128,22 @@ public:
     void updateWusasilieshouzumu4(float dt);
     void updateWusasilieshouzumu5(float dt);
     void updateWusasilieshouzumu6(float dt);
-    void updateWusasilieshouzumu7(float dt);
+    void updateWusasilieshouzumu7(float dt);    
 
     void updateHuangdideliren(float dt);
+
+    void updateShushi12Jingrui12(float dt);
+    void updateShushi3Jingrui3456(float dt);
+
+    void updateWusasilieshouzumu8(float dt);
+    void updateWusasilieshouzumu9(float dt);
+    void updateWusasilieshouzumu10(float dt);
+    void updateWusasilieshouzumu11(float dt);
+    void updateWusasilieshouzumu12(float dt);
+
+    void updateDiguopaohuozhongshuxianzhaozhe(float dt);
+
+    void updateDiguoqianfengbaizhanjingrui12345(float dt);
 
     //高台地面标识初始化
     singlePosition map[11][8] =
@@ -159,27 +172,36 @@ protected:
     //像素路径与格子坐标路径
     Vec2 positionArray1[maxpositionarray] = { Vec2(639,732),Vec2(637,648),Vec2(640,564), Vec2(640,146) };
     Vec2 positionXYArray1[maxpositionarray] = { Vec2(5,7), Vec2(5,6), Vec2(5,5), Vec2(5,0) };
-    
+    float interval1[maxpositionarray] = { 0.f,110.f };
+
     Vec2 positionArray2[maxpositionarray] = { Vec2(565,732), Vec2(560,648) ,Vec2(559,564), Vec2(554,480) ,Vec2(386,480), Vec2(366,313) ,Vec2(548,313), Vec2(640,146) };
     Vec2 positionXYArray2[maxpositionarray] = { Vec2(4,7), Vec2(4,6),Vec2(4,5), Vec2(4,4),Vec2(2,4), Vec2(2,2),Vec2(4,2), Vec2(5,0) };
-    
+    float interval2[maxpositionarray] = { 0.f,0.f,10.0f };
+
     Vec2 positionArray3[maxpositionarray] = { Vec2(713,732), Vec2(714,648) ,Vec2(721,564), Vec2(722,480) ,Vec2(890,480), Vec2(912,313) ,Vec2(730,313), Vec2(640,146) };
     Vec2 positionXYArray3[maxpositionarray] = { Vec2(6,7), Vec2(6,6),Vec2(6,5), Vec2(6,4),Vec2(8,4), Vec2(8,2),Vec2(6,2), Vec2(5,0) };
-    
+    float interval8[maxpositionarray] = { 0.f,86.0f };
     
     
     Vec2 positionArray4[maxpositionarray] = { Vec2(274,732), Vec2(252,648), Vec2(235,564), Vec2(150,146), Vec2(640,146) };
     Vec2 positionXYArray4[maxpositionarray] = { Vec2(0,7), Vec2(0,6), Vec2(0,5), Vec2(0,0), Vec2(5,0) };
     float interval4[maxpositionarray] = { 0.f,3.0f };
+    float interval3[maxpositionarray] = { 0.f,0.f,45.0f };
 
     Vec2 positionArray5[maxpositionarray] = { Vec2(1012,732), Vec2(1022,648), Vec2(1045,564), Vec2(1139,146), Vec2(640,146) };
     Vec2 positionXYArray5[maxpositionarray] = { Vec2(10,7), Vec2(10,6), Vec2(10,5), Vec2(10,0), Vec2(5,0) };
     float interval5[maxpositionarray] = { 0.f,3.0f };
+    float interval9[maxpositionarray] = { 0.f,116.0f };
 
     Vec2 positionArray6[maxpositionarray] = { Vec2(639,732), Vec2(640,564) ,Vec2(722,480), Vec2(890,480) ,Vec2(912,313), Vec2(366,313), Vec2(386,480) ,Vec2(638,480), Vec2(641,397), Vec2(640,146) };
     Vec2 positionXYArray6[maxpositionarray] = { Vec2(5,7), Vec2(5,5),Vec2(6,4), Vec2(8,4),Vec2(8,2), Vec2(2,2) , Vec2(2,4),Vec2(5,4), Vec2(5,3), Vec2(5,0) };
-    //float interval6[maxpositionarray] = { 0.f,40.f,0.f,69.f,93.f,132.f,156.f,0.f,30.f };
-    float interval6[maxpositionarray] = { 0.f,4.f,0.f,6.f,9.f,13.f,15.f,0.f,3.f };
+    float interval6[maxpositionarray] = { 0.f,30.f,0.f,20.f,20.f,15.f,15.f,0.f,30.f };
+    //float interval6[maxpositionarray] = { 0.f,4.f,0.f,6.f,9.f,13.f,15.f,0.f,3.f };
+
+    Vec2 positionArray7[maxpositionarray] = { Vec2(113,397), Vec2(289,397),Vec2(993,397), Vec2(640,146) };
+    Vec2 positionXYArray7[maxpositionarray] = { Vec2(-1,3), Vec2(1,3),Vec2(9,3), Vec2(5,0) };
+    float interval7[maxpositionarray] = { 0.f,22.5f,22.5f };
+    float interval10[maxpositionarray] = { 0.f,10.0f };
 };
 
 #endif

@@ -918,6 +918,7 @@ void Aiyafala::skillHealthUpdate(float dt)
             MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
+        unschedule(CC_SCHEDULE_SELECTOR(Aiyafala::skillHealthUpdate));
     }
 }
 
@@ -1102,6 +1103,7 @@ void Xingxiong::skillHealthUpdate(float dt)
             MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
+        unschedule(CC_SCHEDULE_SELECTOR(Xingxiong::skillHealthUpdate));
     }
 }
 
@@ -1881,6 +1883,7 @@ void Yinhui::skillHealthUpdate(float dt)
             MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
+        unschedule(CC_SCHEDULE_SELECTOR(Yinhui::skillHealthUpdate));
     }
 }
 
@@ -2049,6 +2052,7 @@ void Baimianxiao::skillHealthUpdate(float dt)
             MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
+        unschedule(CC_SCHEDULE_SELECTOR(Baimianxiao::skillHealthUpdate));
     }
 }
 
@@ -2231,6 +2235,7 @@ void Nengtianshi::skillHealthUpdate(float dt)
             MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
+        unschedule(CC_SCHEDULE_SELECTOR(Nengtianshi::skillHealthUpdate));
     }
 }
 
@@ -2578,6 +2583,7 @@ void Taojinniang::skillHealthUpdate(float dt)
             MapInformation::getInstance()->allEmployeeInMap.eraseObject(this);
             });
         this->runAction(Sequence::create(animation, callbackDie, nullptr));
+        unschedule(CC_SCHEDULE_SELECTOR(Taojinniang::skillHealthUpdate));
     }
 }
 

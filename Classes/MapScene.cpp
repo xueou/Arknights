@@ -428,7 +428,7 @@ bool MapScene3::init()
     }
     this->addChild(employeePuttingLayer, 490, 103);
 
-    /*for (int i = 0; i < 9; i++)//9¸ö¾À²ì¹Ù
+    for (int i = 0; i < 9; i++)//9¸ö¾À²ì¹Ù
     {
         if (i < 4)
             MapInformation::getInstance()->addEnemy(GANRANZHEGAOJIJIUCHAGUAN, right, positionArray1, positionXYArray1);
@@ -437,11 +437,10 @@ bool MapScene3::init()
         else
             MapInformation::getInstance()->addEnemy(GANRANZHEGAOJIJIUCHAGUAN, left, positionArray3, positionXYArray3);
     }
-    
-
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan1), 9.0f, 3, 3.0f);
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan2), 8.0f, 2, 15.0f);
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateGanranzhegaojijiuchaguan3), 7.0f, 1, 27.0f);
+
 
     for (int i = 9; i < 24; i++)//15¸öÐÜ
     {
@@ -466,7 +465,6 @@ bool MapScene3::init()
                 MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, right, positionArray5, positionXYArray5);
         }
     }
-
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu1), 11.0f, 2, 59.0f);
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu2), 11.0f, 2, 59.0f);
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu3), 11.0f, 2, 59.0f);
@@ -475,11 +473,46 @@ bool MapScene3::init()
     scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu6), 47.0f);
     schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu7), 11.0f, 1, 70.0f);
 
+
     MapInformation::getInstance()->addEnemy(HUANGDIDELIREN, right, positionArray6, positionXYArray6, interval6);
-    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateHuangdideliren), 96.0f);*/
-    MapInformation::getInstance()->addEnemy(HUANGDIDELIREN, right, positionArray6, positionXYArray6, interval6);
-    MapInformation::getInstance()->allEnemyInMap.at(0)->setIsadded(true);
-    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(0));
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateHuangdideliren), 96.0f);
+    
+
+    MapInformation::getInstance()->addEnemy(WUSASIGAOJIZHUOKAISHUSHI, left, positionArray2, positionXYArray2, interval2);
+    MapInformation::getInstance()->addEnemy(WUSASIGAOJIZHUOKAISHUSHI, right, positionArray6, positionXYArray6, interval2);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, left, positionArray4, positionXYArray4, interval3);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, right, positionArray5, positionXYArray5, interval3);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateShushi12Jingrui12), 99.0f);
+
+
+    MapInformation::getInstance()->addEnemy(WUSASIGAOJIZHUOKAISHUSHI, left, positionArray1, positionXYArray1, interval1);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, left, positionArray2, positionXYArray2, interval8);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, right, positionArray3, positionXYArray3, interval8);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, left, positionArray4, positionXYArray4, interval9);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, right, positionArray5, positionXYArray5, interval9);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateShushi3Jingrui3456), 102.0f);
+
+
+    MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, right, positionArray3, positionXYArray3);
+    MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray4, positionXYArray4);
+    MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray2, positionXYArray2);
+    MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, right, positionArray5, positionXYArray5);
+    MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray1, positionXYArray1);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu8), 107.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu9), 110.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu10), 111.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu11), 116.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu12), 118.0f);
+
+    MapInformation::getInstance()->addEnemy(DIGUOPAOHUOZHONGSHUXIANZHAOZHE, right, positionArray7, positionXYArray7,interval7);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateDiguopaohuozhongshuxianzhaozhe), 120.0f);
+
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, right, positionArray3, positionXYArray3,interval10);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, left, positionArray4, positionXYArray4, interval10);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, left, positionArray2, positionXYArray2, interval10);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, right, positionArray5, positionXYArray5, interval10);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, left, positionArray1, positionXYArray1, interval10);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateDiguoqianfengbaizhanjingrui12345));
 
     scheduleUpdate();
 
@@ -590,4 +623,84 @@ void MapScene3::updateHuangdideliren(float dt)
 {
     MapInformation::getInstance()->allEnemyInMap.at(24)->setIsadded(true);
     this->addChild(MapInformation::getInstance()->allEnemyInMap.at(24));
+}
+
+void MapScene3::updateShushi12Jingrui12(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(25)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(25));
+    MapInformation::getInstance()->allEnemyInMap.at(26)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(26));
+    MapInformation::getInstance()->allEnemyInMap.at(27)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(27));
+    MapInformation::getInstance()->allEnemyInMap.at(28)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(28));
+}
+
+void MapScene3::updateShushi3Jingrui3456(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(29)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(29));
+    MapInformation::getInstance()->allEnemyInMap.at(30)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(30));
+    MapInformation::getInstance()->allEnemyInMap.at(31)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(31));
+    MapInformation::getInstance()->allEnemyInMap.at(32)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(32));
+    MapInformation::getInstance()->allEnemyInMap.at(33)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(33));
+}
+
+void MapScene3::updateWusasilieshouzumu8(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(34)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(34));
+}
+
+void MapScene3::updateWusasilieshouzumu9(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(35)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(35));
+}
+
+void MapScene3::updateWusasilieshouzumu10(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(36)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(36));
+}
+
+void MapScene3::updateWusasilieshouzumu11(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(37)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(37));
+}
+
+void MapScene3::updateWusasilieshouzumu12(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(38)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(38));
+}
+
+void MapScene3::updateDiguopaohuozhongshuxianzhaozhe(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(39)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(39));
+}
+
+void MapScene3::updateDiguoqianfengbaizhanjingrui12345(float dt)
+{
+    if (killedNumber == 40)
+    {
+        MapInformation::getInstance()->allEnemyInMap.at(40)->setIsadded(true);
+        this->addChild(MapInformation::getInstance()->allEnemyInMap.at(40));
+        MapInformation::getInstance()->allEnemyInMap.at(41)->setIsadded(true);
+        this->addChild(MapInformation::getInstance()->allEnemyInMap.at(41));
+        MapInformation::getInstance()->allEnemyInMap.at(42)->setIsadded(true);
+        this->addChild(MapInformation::getInstance()->allEnemyInMap.at(42));
+        MapInformation::getInstance()->allEnemyInMap.at(43)->setIsadded(true);
+        this->addChild(MapInformation::getInstance()->allEnemyInMap.at(43));
+        MapInformation::getInstance()->allEnemyInMap.at(44)->setIsadded(true);
+        this->addChild(MapInformation::getInstance()->allEnemyInMap.at(44));
+        unschedule(CC_SCHEDULE_SELECTOR(MapScene3::updateDiguoqianfengbaizhanjingrui12345));
+    }
 }

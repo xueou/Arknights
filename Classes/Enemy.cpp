@@ -1118,7 +1118,7 @@ bool shibing::initWithFile(const char* filename)
      name = "huangdideliren";
      healthMAX = 40000;
      health = 40000;
-     attrack = 600;
+     attrack = 700;
      defend = 400;
      magicDefend = 40;
      blockNumber = 2;
@@ -1144,14 +1144,14 @@ bool shibing::initWithFile(const char* filename)
      afterrecoverNum = 43;
      recoverTime = 8.0f;
      guoduTime = 6.0f;
-     skillTime = 20.0f;
+     skillTime = 10.0f;
      /***********************************/
 
      initAnimation();
 
      schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
      schedule(CC_SCHEDULE_SELECTOR(Enemy::positionXYUpdate));
-     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(huangdideliren::stateUpdate));
      scheduleUpdate();
 
      if (onlyAttrackWhenBlocked == false)
@@ -1242,6 +1242,24 @@ bool shibing::initWithFile(const char* filename)
      afterrecover2->release();
  }
 
+ void huangdideliren::attrackBlocked()
+ {
+     if (isrecovered == true)
+     {
+         if (this->attrack * 5 / 2 - isBlockedBy->getDefend() > this->attrack * 5 / 100)
+             isBlockedBy->setHealth(isBlockedBy->getHealth() - (this->attrack * 5 / 2 - isBlockedBy->getDefend()) );
+         else
+             isBlockedBy->setHealth(isBlockedBy->getHealth() - this->attrack * 5 / 100 * 5 / 2);
+     }
+     else
+     {
+         if (this->attrack - isBlockedBy->getDefend() > this->attrack * 5 / 100)
+             isBlockedBy->setHealth(isBlockedBy->getHealth() - (this->attrack - isBlockedBy->getDefend()));
+         else
+             isBlockedBy->setHealth(isBlockedBy->getHealth() - this->attrack * 5 / 100);
+     }
+ }
+
  void huangdideliren::update(float dt)
  {
      Enemy::update(dt);
@@ -1288,8 +1306,11 @@ bool shibing::initWithFile(const char* filename)
  {
      
      if (presentState != enemyStateIdle)
+     {
          unschedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
-     unschedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+         ismoving = false;
+     }
+     unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::stateUpdate));
      unscheduleUpdate();
 
      this->stopAllActions();
@@ -1337,7 +1358,7 @@ bool shibing::initWithFile(const char* filename)
              unschedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
              ismoving = false;
          }
-         unschedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+         unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::stateUpdate));
          unscheduleUpdate();
 
          this->stopAllActions();
@@ -1373,6 +1394,66 @@ bool shibing::initWithFile(const char* filename)
      }
  }
 
+ void huangdideliren::skillRecover()
+ {
+     unschedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     ismoving = false;
+     unschedule(CC_SCHEDULE_SELECTOR(Enemy::bloodUpdate));
+     unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::stateUpdate));
+     unscheduleUpdate();
+     unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::skillTansuo));
+     unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduRecover));
+
+     this->stopAllActions();
+     auto animation1 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (beforerecover1) : (beforerecover2));
+     auto animation2 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (duringrecover1) : (duringrecover2));
+     auto animation3 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (afterrecover1) : (afterrecover2));
+     auto callbackRecover = CallFunc::create([this]() {
+         for (auto employee0 : MapInformation::getInstance()->allEmployeeInMap)
+         {
+             bool isInGuodu = false;
+             for (auto center : guoduCenter)
+             {
+                 if (center != Vec2(-1, -1))
+                 {
+                     for (auto range : guoduRange)
+                     {
+                         if (range + center == employee0->getPositionXY())
+                             isInGuodu = true;
+                     }
+                 }
+             }
+             if (isInGuodu)
+                 employee0->setHealth(0);
+             else
+                 employee0->setHealth(employee0->getHealth() - this->attrack * (100 - employee0->getMagicDefend()) / 100);
+         }
+
+         attrack = 1050;
+         health = 50000;
+         healthMAX = 50000;
+         //加个无敌图标
+         auto progress = (ProgressTimer*)this->getChildByTag(MapInformation::getInstance()->allEnemyInMap.getIndex(this));
+         progress->setPercentage(100.f);
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+         schedule(CC_SCHEDULE_SELECTOR(huangdideliren::stateUpdate));
+         scheduleUpdate();
+         schedule(CC_SCHEDULE_SELECTOR(huangdideliren::skillTansuo), skillTime);
+         schedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduRecover), 1.0f);
+
+         scheduleOnce(CC_SCHEDULE_SELECTOR(huangdideliren::unbeatableOver), 10.0f);
+         });
+     auto animation = Sequence::create(animation1, animation2, animation3, callbackRecover, nullptr);
+     this->runAction(animation);
+ }
+
+ void huangdideliren::unbeatableOver(float dt)
+ {
+     health = 50000;
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::bloodUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate2));
+ }
+
  void huangdideliren::guoduRecover(float dt)
  {
      bool isInGuodu = false;
@@ -1402,12 +1483,79 @@ bool shibing::initWithFile(const char* filename)
      }
 
  }
- /************复活之后记得加过渡2***************/
+
+ void huangdideliren::guoduUpdate2(float dt)
+ {
+     if (health < healthMAX * 3 / 4)
+     {
+         guoduCenter[1] = searchForGuodu();
+         skillGuodu(guoduCenter[1]);
+         unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate2));
+         schedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate3));
+     }
+
+ }
+
+ void huangdideliren::guoduUpdate3(float dt)
+ {
+     if (health < healthMAX / 2)
+     {
+         guoduCenter[2] = searchForGuodu();
+         skillGuodu(guoduCenter[2]);
+         unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate3));
+         schedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate4));
+     }
+
+ }
+
+ void huangdideliren::guoduUpdate4(float dt)
+ {
+     if (health < healthMAX / 4)
+     {
+         guoduCenter[3] = searchForGuodu();
+         skillGuodu(guoduCenter[3]);
+         unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate4));
+     }
+
+ }
+ 
  void huangdideliren::skillOverUpdate(float dt)
  {
      lastState = enemyStateNone;
      if (presentState != enemyStateIdle)
          schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
-     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(huangdideliren::stateUpdate));
      scheduleUpdate();
+ }
+
+ void huangdideliren::stateUpdate(float dt)
+ {
+     if (isadded)
+     {
+         if (this->getPresentState() != enemyStateDie)
+         {
+             if (this->health <= 0)
+             {
+                 if (isrecovered == false)
+                 {
+                     skillRecover();
+                     isrecovered = true;
+                 }
+                 else
+                     this->setPresentState(enemyStateDie);
+             }
+             else
+             {
+                 if (this->onlyAttrackWhenBlocked == true)
+                 {
+                     if (isblocked == true)
+                     {
+                         presentState = enemyStateAttackKeep;
+                         stopActionByTag(enemyPingYi);
+                     }
+                 }
+             }
+
+         }
+     }
  }
