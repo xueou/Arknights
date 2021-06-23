@@ -69,7 +69,7 @@ public:
     virtual bool initWithFile(const char* filename);
     void initAnimation();
     void releaseAnimation();
-    virtual void releaseSkillAnimation();
+    virtual void releaseSkillAnimation() = 0;
     virtual void initSkillAnimation() = 0;
     virtual void skill() = 0;
     void loadingBlood();
@@ -96,14 +96,12 @@ public:
     void update(float dt);
 protected:
     std::string name;
-    //最大生命值、最大技能值、攻、阻挡数、同时攻击数、攻击速度、攻击范围类型
-    int healthMAX, spMAX, attrack, blockNumber, attrackNumber, attrackSpeed, attrackRange;
-    //攻击间隔、技能持续时间
-    float attrackInterval, skillTime;
+    //最大生命值、最大技能值、阻挡数、同时攻击数、攻击速度、攻击范围类型
+    int healthMAX, spMAX, blockNumber, attrackNumber, attrackSpeed, attrackRange;
+    //技能持续时间
+    float skillTime;
     //是否技能自动开启
     bool isSkillAuto;
-    //格子位置坐标
-    Vec2 positionXY;
     //地面/高台、法伤/物伤/奶、能攻击的敌人类型、能阻挡的敌人类型
     int positionType, damageType, selectedType, blockedType;
     //锁定的攻击敌人
@@ -119,12 +117,15 @@ protected:
     int attackNum, startNum, idleNum, dieNum;
     int beforeskillNum, duringskillNum, afterskillNum, skillNum;
     int attackReachNum;//攻击生效帧数
+    CC_SYNTHESIZE(int, attrack, Attrack);//攻击
     CC_SYNTHESIZE(int, health, Health);//当前生命值
     CC_SYNTHESIZE(int, sp, SP);//当前技能值
     CC_SYNTHESIZE(int, defend, Defend);//防御
     CC_SYNTHESIZE(int, magicDefend, MagicDefend);//法抗
+    CC_SYNTHESIZE(float, attrackInterval, AttrackInterval);//攻击间隔
     CC_SYNTHESIZE(int, remainBlockNumber, RemainBlockNumber);//剩余阻挡数
     CC_SYNTHESIZE(int, direction0, Direction0);//放置方向
+    CC_SYNTHESIZE(Vec2, positionXY, PositionXY);//格子位置坐标
     CC_SYNTHESIZE(EmployeeState, lastState, LastState);
     CC_SYNTHESIZE(EmployeeState, presentState, PresentState);
 };
@@ -190,6 +191,7 @@ public:
     static Shierteer* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
     bool initWithFile(const char* filename);
     void initSkillAnimation();
+    void releaseSkillAnimation();
     void skill();
 
     CREATE_SPIRITE(Shierteer);
@@ -216,9 +218,11 @@ public:
     void skillTouchAuto(float dt);
 
     void skillOverUpdate(float dt);
+    void recoverUpdate(float dt);
     void releaseSkillAnimation();
 protected:
     bool isskilled = false;
+    bool isrecovered = false;
 };
 
 class Shanling :public Employee

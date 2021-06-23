@@ -202,6 +202,7 @@ Animation* Employee::createAnimate(int direction, const char* name, const char* 
 
 void Employee::attrackSelectedEnemy()
 {
+    AudioEngine::play2d(".\\employee\\"+name+"\\attackeffect.mp3");
     if ((attrackRange != DANNAI) && (attrackRange != QUNNAI))//医疗干员特判
     {
         for (Enemy* p : this->selectedEnemy)
@@ -216,7 +217,7 @@ void Employee::attrackSelectedEnemy()
             log("health1: %d", p->getHealth());*/
             if (damageType == magical)
             {
-                p->setHealth(p->getHealth() - this->attrack * (100 - p->getMagicDefend()) / 100);
+                p->setHealth(p->getHealth() - this->attrack * (100 - (p->getMagicDefend()-(this->name=="shierteer"?(20):(0)))) / 100);//简化逻辑，直接加入史尔特尔天赋特判
             }
             else if (damageType == phisical)
             {
@@ -472,7 +473,7 @@ int Employee::getEmployeeListType()                /***************记得补全*****
     else if (name == "taojinniang")
         return 11;
 }
-
+/**********************************菜单状态下的死亡处理*****************************************/
 void Employee::addSkillList()
 {
     auto p = Sprite::create("greensquare.png");
@@ -848,6 +849,7 @@ void Aiyafala::initSkillAnimation()
 
 void Aiyafala::skill()
 {
+    AudioEngine::play2d(".\\employee\\aiyafala\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unscheduleUpdate();
@@ -883,7 +885,10 @@ void Aiyafala::skillSPUpdate(float dt)
 void Aiyafala::skillAttrackUpdate(float dt)
 {
     if (searchEnemyByType(huoshan, huoshanRange))
+    {
+        AudioEngine::play2d(".\\employee\\aiyafala\\skillattrackeffect.mp3");
         attrackSelectedEnemy();
+    }
 }
 
 void Aiyafala::skillHealthUpdate(float dt)
@@ -1383,6 +1388,11 @@ void Shierteer::initSkillAnimation()
 
 }
 
+void Shierteer::releaseSkillAnimation()
+{
+
+}
+
 void Shierteer::skill()
 {
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
@@ -1401,6 +1411,8 @@ void Shierteer::skill()
     idleNum = 56;
     attackReachNum = 18;
     attrackRange = HUANGHUN;
+    this->stopActionByTag(presentState);
+    lastState = employeeStateNone;
     this->attack1 = Employee::createAnimate(1, name.c_str(), "skillattack", attackNum, 1, attrackInterval / attackNum);
     this->attack2 = Employee::createAnimate(2, name.c_str(), "skillattack", attackNum, 1, attrackInterval / attackNum);
     this->idle1 = Employee::createAnimate(1, name.c_str(), "skillidle", idleNum, -1, 0.04f);
@@ -1506,6 +1518,7 @@ bool Huang::initWithFile(const char* filename)
 
     schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     schedule(CC_SCHEDULE_SELECTOR(Huang::skillTouchAuto));
+    schedule(CC_SCHEDULE_SELECTOR(Huang::recoverUpdate));
     scheduleUpdate();
 
     return true;
@@ -1609,6 +1622,15 @@ void Huang::skillOverUpdate(float dt)
 
     schedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     scheduleUpdate();
+}
+
+void Huang::recoverUpdate(float dt)
+{
+    if (health < healthMAX / 4)
+    {
+        health += healthMAX / 2;
+        unschedule(CC_SCHEDULE_SELECTOR(Huang::recoverUpdate));
+    }
 }
 
 void Huang::releaseSkillAnimation()
@@ -1738,7 +1760,7 @@ bool Yinhui::initWithFile(const char* filename)
     health = 2560;
     spMAX = 90;
     sp = 75;
-    attrack = 789;
+    attrack = 865;
     defend = 447;
     magicDefend = 10;
     blockNumber = 2;
@@ -1801,7 +1823,7 @@ void Yinhui::skill()
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unscheduleUpdate();
 
-    attrack = 2367;
+    attrack = 2391;
     attrackNumber = 6;
     defend = 134;
     this->stopAllActions();
@@ -1864,7 +1886,7 @@ void Yinhui::skillHealthUpdate(float dt)
 
 void Yinhui::skillOverUpdate(float dt)
 {
-    attrack = 789;
+    attrack = 865;
     attrackNumber = 1;
     defend = 447;
 
@@ -2322,7 +2344,7 @@ void Dekesasi::skill()
     this->stopAllActions();
 
     auto map = static_cast<MapScene*>(this->getParent());
-    map->setC(map->getC() + 12);
+    map->setC((map->getC() + 12)>99?(99):(map->getC() + 12));
 
     auto animation = Animate::create((direction0 == left || direction0 == front) ? (duringskill1) : (duringskill2));
 
@@ -2517,7 +2539,6 @@ void Taojinniang::update(float dt)
     Employee::update(dt);
 }
 
-
 void Taojinniang::skillSPUpdate(float dt)
 {
     if (sp > 0)
@@ -2527,7 +2548,7 @@ void Taojinniang::skillSPUpdate(float dt)
 void Taojinniang::skillCUpdate(float dt)
 {
     auto map = static_cast<MapScene*>(this->getParent());
-    map->setC(map->getC() + 1);
+    map->setC((map->getC() + 1)>99?(99):(map->getC() + 1));
 }
 
 void Taojinniang::skillHealthUpdate(float dt)

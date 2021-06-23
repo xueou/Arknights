@@ -130,6 +130,8 @@ public:
     void updateWusasilieshouzumu6(float dt);
     void updateWusasilieshouzumu7(float dt);
 
+    void updateHuangdideliren(float dt);
+
     //高台地面标识初始化
     singlePosition map[11][8] =
     {
@@ -168,15 +170,16 @@ protected:
     
     Vec2 positionArray4[maxpositionarray] = { Vec2(274,732), Vec2(252,648), Vec2(235,564), Vec2(150,146), Vec2(640,146) };
     Vec2 positionXYArray4[maxpositionarray] = { Vec2(0,7), Vec2(0,6), Vec2(0,5), Vec2(0,0), Vec2(5,0) };
-    float interval4[maxpositionarray] = { 0.f,4.0f };
+    float interval4[maxpositionarray] = { 0.f,3.0f };
 
     Vec2 positionArray5[maxpositionarray] = { Vec2(1012,732), Vec2(1022,648), Vec2(1045,564), Vec2(1139,146), Vec2(640,146) };
     Vec2 positionXYArray5[maxpositionarray] = { Vec2(10,7), Vec2(10,6), Vec2(10,5), Vec2(10,0), Vec2(5,0) };
-    float interval5[maxpositionarray] = { 0.f,4.0f };
+    float interval5[maxpositionarray] = { 0.f,3.0f };
 
     Vec2 positionArray6[maxpositionarray] = { Vec2(639,732), Vec2(640,564) ,Vec2(722,480), Vec2(890,480) ,Vec2(912,313), Vec2(366,313), Vec2(386,480) ,Vec2(638,480), Vec2(641,397), Vec2(640,146) };
     Vec2 positionXYArray6[maxpositionarray] = { Vec2(5,7), Vec2(5,5),Vec2(6,4), Vec2(8,4),Vec2(8,2), Vec2(2,2) , Vec2(2,4),Vec2(5,4), Vec2(5,3), Vec2(5,0) };
-    
+    //float interval6[maxpositionarray] = { 0.f,40.f,0.f,69.f,93.f,132.f,156.f,0.f,30.f };
+    float interval6[maxpositionarray] = { 0.f,4.f,0.f,6.f,9.f,13.f,15.f,0.f,3.f };
 };
 
 #endif

@@ -300,7 +300,7 @@ bool MapScene1::init()
 
     //放置干员层
     auto employeePuttingLayer = Layer::create();
-    float time[11] = { 63.0f, 63.0f ,63.0f,63.0f,63.0f,63.0f,59.0f,63.0f,63.0f,59.0f,59.0f };
+    float time[11] = { 56.7f, 56.7f ,56.7f,56.7f,56.7f,56.7f,53.1f,56.7f,56.7f,53.1f,53.1f };
     int fee[11] = { 20,22,22,21,24,20,19,17,14,12,8};
     int positionType[11] = { up, down , down, down, down,up,down,up,up,down,down};
     for (int i = 1; i <= 11; i++)
@@ -387,7 +387,7 @@ bool MapScene3::init()
     mapinit(mapangle);
     enemyTotalNember = 45;
     cSpeed = 1;
-    c = 11;
+    c = 80;//11
     X_MAX = 11;
     Y_MAX = 8;
     /******************************************/
@@ -415,7 +415,7 @@ bool MapScene3::init()
 
     //放置干员层
     auto employeePuttingLayer = Layer::create();
-    float time[11] = { 63.0f, 63.0f ,63.0f,63.0f,63.0f,63.0f,59.0f,63.0f,63.0f,59.0f,59.0f };
+    float time[11] = { 56.7f, 56.7f ,56.7f,56.7f,56.7f,56.7f,53.1f,56.7f,56.7f,53.1f,53.1f };
     int fee[11] = { 20,22,22,21,24,20,19,17,14,12,8 };
     int positionType[11] = { up, down , down, down, down,up,down,up,up,down,down };
     for (int i = 1; i <= 11; i++)
@@ -428,7 +428,7 @@ bool MapScene3::init()
     }
     this->addChild(employeePuttingLayer, 490, 103);
 
-    for (int i = 0; i < 9; i++)//9个纠察官
+    /*for (int i = 0; i < 9; i++)//9个纠察官
     {
         if (i < 4)
             MapInformation::getInstance()->addEnemy(GANRANZHEGAOJIJIUCHAGUAN, right, positionArray1, positionXYArray1);
@@ -467,15 +467,19 @@ bool MapScene3::init()
         }
     }
 
-    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu1), 11.0f, 2, 60.0f);
-    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu2), 11.0f, 2, 60.0f);
-    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu3), 11.0f, 2, 60.0f);
-    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu4), 48.0f);
-    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu5), 11.0f, 1, 71.0f);
-    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu6), 48.0f);
-    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu7), 11.0f, 1, 71.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu1), 11.0f, 2, 59.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu2), 11.0f, 2, 59.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu3), 11.0f, 2, 59.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu4), 47.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu5), 11.0f, 1, 70.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu6), 47.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu7), 11.0f, 1, 70.0f);
 
-    
+    MapInformation::getInstance()->addEnemy(HUANGDIDELIREN, right, positionArray6, positionXYArray6, interval6);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateHuangdideliren), 96.0f);*/
+    MapInformation::getInstance()->addEnemy(HUANGDIDELIREN, right, positionArray6, positionXYArray6, interval6);
+    MapInformation::getInstance()->allEnemyInMap.at(0)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(0));
 
     scheduleUpdate();
 
@@ -580,4 +584,10 @@ void MapScene3::updateWusasilieshouzumu7(float dt)
     num += 1;
     if (num == 24)
         num = 22;
+}
+
+void MapScene3::updateHuangdideliren(float dt)
+{
+    MapInformation::getInstance()->allEnemyInMap.at(24)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(24));
 }

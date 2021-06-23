@@ -170,7 +170,7 @@ void Enemy::getIntervalArray(float p[maxpositionarray])
         interval[i] = p[i];
 }
 
-Animation* Enemy::createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit)
+Animation* Enemy::createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit, float yPlus)
 {
     /*auto m_frameCache = SpriteFrameCache::getInstance();
     m_frameCache->addSpriteFramesWithFile(StringUtils::format(".\\enemy\\%s\\%s.plist", name,name), StringUtils::format(".\\enemy\\%s\\%s.pvr.ccz.pvr.ccz", name, name));
@@ -187,7 +187,7 @@ Animation* Enemy::createAnimate(int direction, const char* name, const char* act
     for (int i = 1; i <= num; i++)
     {
         auto* frame = SpriteFrame::create(StringUtils::format(".\\enemy\\%s\\%s%d\\%s%d (%d).png", name, action, direction,action, direction, i),Rect(0,0,this->getContentSize().width, this->getContentSize().height));
-        frame->setAnchorPoint(Vec2(0.5f, 0.25f));
+        frame->setAnchorPoint(Vec2(0.5f, 0.25f+yPlus));
         frameArray.pushBack(frame);
     }
     auto animation = Animation::createWithSpriteFrames(frameArray);
@@ -515,6 +515,8 @@ void Enemy::update(float dt)
 
     }
 }
+
+
 
 
 
@@ -1105,6 +1107,7 @@ bool shibing::initWithFile(const char* filename)
 
 
 
+ Vec2 guoduRange[13] = { Vec2(0,0),Vec2(0,1),Vec2(0,-1),Vec2(-1,0),Vec2(-1,1),Vec2(-1,-1),Vec2(1,0),Vec2(1,1),Vec2(1,-1),Vec2(-2,0),Vec2(2,0) ,Vec2(0,2),Vec2(0,-2) };
  bool huangdideliren::initWithFile(const char* filename)
  {
      if (!Enemy::initWithFile(filename))
@@ -1113,8 +1116,8 @@ bool shibing::initWithFile(const char* filename)
      }
      /************基础数据初始化*********/
      name = "huangdideliren";
-     healthMAX = 28000;
-     health = 28000;
+     healthMAX = 40000;
+     health = 40000;
      attrack = 600;
      defend = 400;
      magicDefend = 40;
@@ -1122,17 +1125,26 @@ bool shibing::initWithFile(const char* filename)
      attrackSpeed = 100;
      attrackInterval = 4.0f;
      moveSpeed = 0.6f;
-     attrackR = 0.f;
+     attrackR = 2.0f;
      positionType = down;
      damageType = phisical;
-     onlyAttrackWhenBlocked = false;
+     onlyAttrackWhenBlocked = true;
      isblocked = false;
      ismoving = false;
      attackNum = 27;
-     dieNum = 16;
-     idleNum = 53;
+     dieNum = 51;
+     idleNum = 28;
      moveNum = 24;
      attackReachNum = 16;
+
+     guoduNum = 153;
+     skillNum = 31;
+     beforerecoverNum = 56;
+     duringrecoverNum = 33;
+     afterrecoverNum = 43;
+     recoverTime = 8.0f;
+     guoduTime = 6.0f;
+     skillTime = 20.0f;
      /***********************************/
 
      initAnimation();
@@ -1144,6 +1156,10 @@ bool shibing::initWithFile(const char* filename)
 
      if (onlyAttrackWhenBlocked == false)
          schedule(CC_SCHEDULE_SELECTOR(Enemy::movingAttrackUpdate));
+
+     schedule(CC_SCHEDULE_SELECTOR(huangdideliren::skillTansuo),skillTime);
+     schedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduRecover),1.0f);
+     schedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate1));
 
      return true;
  }
@@ -1167,8 +1183,231 @@ bool shibing::initWithFile(const char* filename)
      return p;
  }
 
+ void huangdideliren::initAnimation()
+ {
+     this->move1 = Enemy::createAnimate(1, name.c_str(), "move", moveNum, -1, 0.04f, 0.1f);
+     this->move2 = Enemy::createAnimate(2, name.c_str(), "move", moveNum, -1, 0.04f, 0.1f);
+     this->attack1keep = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, attrackInterval / attackNum, 0.1f);
+     this->attack2keep = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, attrackInterval / attackNum, 0.1f);
+     this->attack1once = Enemy::createAnimate(1, name.c_str(), "attack", attackNum, 1, 0.04f, 0.1f);
+     this->attack2once = Enemy::createAnimate(2, name.c_str(), "attack", attackNum, 1, 0.04f, 0.1f);
+     this->idle1 = Enemy::createAnimate(1, name.c_str(), "idle", idleNum, -1, 0.04f, 0.1f);
+     this->idle2 = Enemy::createAnimate(2, name.c_str(), "idle", idleNum, -1, 0.04f, 0.1f);
+     this->die1 = Enemy::createAnimate(1, name.c_str(), "die", dieNum, 1, 0.04f, 0.1f);
+     this->die2 = Enemy::createAnimate(2, name.c_str(), "die", dieNum, 1, 0.04f, 0.1f);
+     move1->retain();
+     move2->retain();
+     attack1keep->retain();
+     attack2keep->retain();
+     attack1once->retain();
+     attack2once->retain();
+     idle1->retain();
+     idle2->retain();
+     die1->retain();
+     die2->retain();
+     this->guodu1 = Enemy::createAnimate(1, name.c_str(), "guodu", guoduNum, 1, guoduTime/ guoduNum, 0.1f);
+     this->guodu2 = Enemy::createAnimate(2, name.c_str(), "guodu", guoduNum, 1, guoduTime / guoduNum, 0.1f);
+     this->skill1 = Enemy::createAnimate(1, name.c_str(), "skill", skillNum, 1, 0.04f, 0.1f);
+     this->skill2 = Enemy::createAnimate(2, name.c_str(), "skill", skillNum, 1, 0.04f, 0.1f);
+     this->beforerecover1 = Enemy::createAnimate(1, name.c_str(), "beforerecover", beforerecoverNum, 1, 0.04f, 0.1f);
+     this->beforerecover2 = Enemy::createAnimate(2, name.c_str(), "beforerecover", beforerecoverNum, 1, 0.04f, 0.1f);
+     this->duringrecover1 = Enemy::createAnimate(1, name.c_str(), "duringrecover", duringrecoverNum, 3, 0.04f, 0.1f);
+     this->duringrecover2 = Enemy::createAnimate(2, name.c_str(), "duringrecover", duringrecoverNum, 3, 0.04f, 0.1f);
+     this->afterrecover1 = Enemy::createAnimate(1, name.c_str(), "afterrecover", afterrecoverNum, 1, 0.04f, 0.1f);
+     this->afterrecover2 = Enemy::createAnimate(2, name.c_str(), "afterrecover", afterrecoverNum, 1, 0.04f, 0.1f);
+     guodu1->retain();
+     guodu2->retain();
+     skill1->retain();
+     skill2->retain();
+     beforerecover1->retain();
+     beforerecover2->retain();
+     duringrecover1->retain();
+     duringrecover2->retain();
+     afterrecover1->retain();
+     afterrecover2->retain();
+ }
+
+ void huangdideliren::releaseAnimation()
+ {
+     Enemy::releaseAnimation();
+     guodu1->release();
+     guodu2->release();
+     skill1->release();
+     skill2->release();
+     beforerecover1->release();
+     beforerecover2->release();
+     duringrecover1->release();
+     duringrecover2->release();
+     afterrecover1->release();
+     afterrecover2->release();
+ }
+
  void huangdideliren::update(float dt)
  {
      Enemy::update(dt);
 
+ }
+
+ Vec2 huangdideliren::searchForGuodu()
+ {
+     int searchAttrack = 0, index = -1;
+     for (Employee* m : MapInformation::getInstance()->allEmployeeInMap)
+     {
+         if (m->getAttrack() > searchAttrack)
+         {
+             searchAttrack = m->getAttrack();
+             index = MapInformation::getInstance()->allEmployeeInMap.getIndex(m);
+         }
+     }
+     if (index != -1)
+         return MapInformation::getInstance()->allEmployeeInMap.at(index)->getPositionXY();
+     else
+         return this->positionXYNow.at(0);
+ }
+
+ bool huangdideliren::searchForEmployee()
+ {
+     this->selectedEmployee.clear();
+     int index = -1;
+     float singleSquareLength = getLength((positionArray[pointNow + 1] - positionArray[pointNow])) / getLength((positionXYArray[pointNow + 1] - positionXYArray[pointNow]));
+     float length = singleSquareLength * attrackR;
+     for (Employee* employee0 : MapInformation::getInstance()->allEmployeeInMap)
+     {
+         if (getLength((employee0->getPosition() - this->positionNow)) < length)
+         {
+             this->selectedEmployee.pushBack(employee0);
+         }
+     }
+     if (this->selectedEmployee.size()!=0)
+         return true;
+     else
+         return false;
+ }
+
+ void huangdideliren::skillGuodu(Vec2 center)
+ {
+     
+     if (presentState != enemyStateIdle)
+         unschedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     unschedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     unscheduleUpdate();
+
+     this->stopAllActions();
+     auto animation1 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (guodu1) : (guodu2));
+     auto callbackGuodu = CallFunc::create([this,center]() {
+         auto map3 = dynamic_cast<MapScene3*>(this->getParent());
+         for (auto p : guoduRange)
+         {
+             if ((p + center).x >= 0.f && (p + center).x < 11.0f && (p + center).y >= 0.f && (p + center).y < 8.0f)
+             {
+                 auto green = Sprite::create("greensquare.png");
+                 auto black = Sprite::create("guodu.png");
+                 black->setOpacity(120);
+                 black->setAnchorPoint(Vec2(0.5f, 0.f));
+                 black->setPosition(map3->map[static_cast<int>((p + center).x)][static_cast<int>((p + center).y)].position - Vec2(0.f, green->getContentSize().height/2.0f));
+                 map3->addChild(black, 1);
+             }
+         }
+
+         for (auto p : MapInformation::getInstance()->allEmployeeInMap)
+         {
+             float singleSquareLength = getLength((positionArray[pointNow + 1] - positionArray[pointNow])) / getLength((positionXYArray[pointNow + 1] - positionXYArray[pointNow]));
+             float length = singleSquareLength * attrackR;
+             if (getLength((center - p->getPositionXY())) < length)
+             {
+                 p->setHealth(p->getHealth() - this->attrack * (100 - p->getMagicDefend()) / 100);
+                 //p->setAttrackInterval(p->getAttrackInterval() * 2);
+                 p->setAttrack(p->getAttrack() * 5 / 6);
+             }
+         }
+         });
+     auto animation = Sequence::create(callbackGuodu, animation1, nullptr);
+     this->runAction(animation);
+     
+
+     scheduleOnce(CC_SCHEDULE_SELECTOR(huangdideliren::skillOverUpdate), guoduTime);
+ }
+
+ void huangdideliren::skillTansuo(float dt)
+ {
+     if (searchForEmployee())
+     {
+         if (presentState != enemyStateIdle)
+         {
+             unschedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+             ismoving = false;
+         }
+         unschedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+         unscheduleUpdate();
+
+         this->stopAllActions();
+         auto animation1 = Animate::create((getDirection(positionNow.x, positionArray[pointNow + 1].x) == left) ? (skill1) : (skill2));
+         auto callbackTansuo = CallFunc::create([this]() {
+             auto map3 = dynamic_cast<MapScene3*>(this->getParent());
+             
+             for (auto p : selectedEmployee)
+             {
+                 bool isInGuodu = false;
+                 for (auto center : guoduCenter)
+                 {
+                     if (center != Vec2(-1, -1))
+                     {
+                         for (auto range : guoduRange)
+                         {
+                             if (range + center == p->getPositionXY())
+                                 isInGuodu = true;
+                         }
+                     }
+                 }
+                 if (isInGuodu)
+                     p->setHealth(0);
+                 else
+                     p->setHealth(p->getHealth() - this->attrack * (100 - p->getMagicDefend()) / 100);
+             }
+             });
+         auto animation = Sequence::create(animation1, callbackTansuo, nullptr);
+         this->runAction(animation);
+
+
+         scheduleOnce(CC_SCHEDULE_SELECTOR(huangdideliren::skillOverUpdate), skillNum * 0.04f);
+     }
+ }
+
+ void huangdideliren::guoduRecover(float dt)
+ {
+     bool isInGuodu = false;
+     for (auto center : guoduCenter)
+     {
+         if (center != Vec2(-1, -1))
+         {
+             for (auto range : guoduRange)
+             {
+                 for (auto p : positionXYNow)
+                     if (range + center == p)
+                         isInGuodu = true;
+             }
+         }
+     }
+     if (isInGuodu)
+         health = (health + 200 >= healthMAX) ? (healthMAX) : (health + 200);
+ }
+
+ void huangdideliren::guoduUpdate1(float dt)
+ {
+     if (health < healthMAX / 2)
+     {
+         guoduCenter[0] = searchForGuodu();   
+         skillGuodu(guoduCenter[0]);
+         unschedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate1));
+     }
+
+ }
+ /************复活之后记得加过渡2***************/
+ void huangdideliren::skillOverUpdate(float dt)
+ {
+     lastState = enemyStateNone;
+     if (presentState != enemyStateIdle)
+         schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
+     schedule(CC_SCHEDULE_SELECTOR(Enemy::stateUpdate));
+     scheduleUpdate();
  }

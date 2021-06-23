@@ -60,7 +60,7 @@ public:
 	void getPositionArray(Vec2 a[maxpositionarray],Vec2 b[maxpositionarray]);
 	void getIntervalArray(float p[maxpositionarray]);
 	//»ñµÃ¶¯»­
-	Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit);
+	Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit, float yPlus=0.f);
 	void loadingBlood();
 	bool searchEmployee();
 	void getIsBlockedBy(Employee* p);
@@ -209,8 +209,27 @@ public:
 	static huangdideliren* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray]);
 	static huangdideliren* createSprite(const char* filename, Vec2 a[maxpositionarray], Vec2 b[maxpositionarray], float interval[maxpositionarray]);
 	bool initWithFile(const char* filename);
+	void initAnimation();
+	void releaseAnimation();
 	CREATE_SPIRITE(huangdideliren);
 	void update(float dt);
+
+    Vec2 searchForGuodu();
+	bool searchForEmployee();
+	void skillGuodu(Vec2 center);
+
+	void skillTansuo(float dt);
+	void guoduRecover(float dt);
+	void guoduUpdate1(float dt);
+	void guoduUpdate2(float dt);
+	void guoduUpdate3(float dt);
+	void guoduUpdate4(float dt);
+	void skillOverUpdate(float dt);
+protected:
+	Vec2 guoduCenter[4] = { Vec2(-1,-1),Vec2(-1,-1) ,Vec2(-1,-1) ,Vec2(-1,-1) };
+	Animation* guodu1, * guodu2, * skill1, * skill2, * beforerecover1, * beforerecover2, * duringrecover1, * duringrecover2, * afterrecover1, * afterrecover2;
+	int guoduNum, skillNum, beforerecoverNum, duringrecoverNum, afterrecoverNum;
+	float recoverTime, guoduTime, skillTime;
 };
 
 #endif
