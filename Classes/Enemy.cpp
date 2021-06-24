@@ -14,7 +14,7 @@ bool Enemy::initWithFile(const char* filename)             /********************
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     log("fuck");*/
-    
+    schedule(CC_SCHEDULE_SELECTOR(Enemy::zorderUpdate));
 
     return true;
 }
@@ -203,6 +203,11 @@ void Enemy::idleForInterval(float ddt)
     presentState = enemyStateIdle;
 
     scheduleOnce(CC_SCHEDULE_SELECTOR(Enemy::recoverPositionUpdate), ddt);
+}
+
+void Enemy::zorderUpdate(float dt)
+{
+    this->setLocalZOrder((750 - static_cast<int>(this->getPosition().y)) / 3);
 }
 
 void Enemy::recoverPositionUpdate(float dt)
@@ -1144,7 +1149,7 @@ bool shibing::initWithFile(const char* filename)
      afterrecoverNum = 43;
      recoverTime = 8.0f;
      guoduTime = 6.0f;
-     skillTime = 10.0f;
+     skillTime = 15.0f;
      /***********************************/
 
      initAnimation();
@@ -1430,9 +1435,12 @@ bool shibing::initWithFile(const char* filename)
          }
 
          attrack = 1050;
-         health = 50000;
-         healthMAX = 50000;
+         health = 60000;
+         healthMAX = 60000;
          //加个无敌图标
+         auto unbeatableTag = Sprite::create(".\\enemy\\huangdideliren\\unbeatable.png");
+         unbeatableTag->setPosition(Vec2(this->getContentSize().width / 2.0f, this->getContentSize().height / 2.0f));
+         this->addChild(unbeatableTag, 1, 34);
          auto progress = (ProgressTimer*)this->getChildByTag(MapInformation::getInstance()->allEnemyInMap.getIndex(this));
          progress->setPercentage(100.f);
          schedule(CC_SCHEDULE_SELECTOR(Enemy::positionUpdate));
@@ -1449,7 +1457,8 @@ bool shibing::initWithFile(const char* filename)
 
  void huangdideliren::unbeatableOver(float dt)
  {
-     health = 50000;
+     health = 60000;
+     this->removeChildByTag(34);
      schedule(CC_SCHEDULE_SELECTOR(Enemy::bloodUpdate));
      schedule(CC_SCHEDULE_SELECTOR(huangdideliren::guoduUpdate2));
  }

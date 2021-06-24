@@ -76,8 +76,10 @@ public:
     void loadingSP();
     void choosingMin(Enemy* p);
     void addSkillList();
+    void releaseSkillList();
 
     Animation* createAnimate(int direction, const char* name, const char* action, int num, int loop, float delayPerUnit);
+    virtual void attackAnimate();
     void attrackSelectedEnemy();
     bool searchEnemy();
     void searchForBlock();
@@ -86,7 +88,7 @@ public:
     bool searchEnemyByType(Vec2 range[12],int rangeNum);
     int getEmployeeListType();
 
-    
+    void skillReadyShowing(float dt);
     void spUpdate(float dt);
     void skillButtonUpdate(float dt);
     void spIncreaseUpdate(float dt);
@@ -134,6 +136,7 @@ class Aiyafala :public Employee
 {
 public:
     static Aiyafala* createSprite(const char* filename, int direction0, Vec2 position, Vec2 positionXY);
+    void attackAnimate();
     bool initWithFile(const char* filename);
     void initSkillAnimation();
     void skill();
@@ -146,6 +149,8 @@ public:
     void skillHealthUpdate(float dt);
     void skillOverUpdate(float dt);
     void releaseSkillAnimation();
+protected:
+    Animation* attackeffect;
 };
 
 class Xingxiong :public Employee

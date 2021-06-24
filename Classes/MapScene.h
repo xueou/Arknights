@@ -44,11 +44,10 @@ public:
 
     void topUpdate1(EventCustom* event);//更新顶部信息
     void topUpdate2(EventCustom* event);
+    //virtual void mapOccupyUpdate(EventCustom* event) = 0;
     void cUpdate(float dt);//费用显示更新
     void remainPuttingNumUpdate(float dt);//费用显示更新
 
-    void win();
-    void lose();
 
     void update(float dt);
 
@@ -73,6 +72,7 @@ public:
     CREATE_FUNC(MapScene1);
     void update(float dt);
 
+    void mapOccupyUpdate(EventCustom* event);
     void updateYuanshichong1(float dt);
     void updateYuanshichong2(float dt);
     void updateShibing(float dt);
@@ -106,6 +106,45 @@ protected:
 
 class MapScene2 : public MapScene
 {
+public:
+    static cocos2d::Scene* createScene();
+    bool init();
+    void mapinit(int mapangle[4][2]);
+    CREATE_FUNC(MapScene2);
+    void update(float dt);
+
+    void mapOccupyUpdate(EventCustom* event);
+    void updateYuanshichong(float dt);
+    void updateGanranzhegaojijiuchaguan(float dt);
+    void updateShibing(float dt);
+    void updateWusasilieshouzumu(float dt);
+    void updateWusasigaojizhuokaishushi(float dt);
+    void updateJingrui(float dt);
+
+    //高台地面标识初始化
+    singlePosition map[7][4] =
+    {
+        {{up},{down},{down},{up} },
+        {{up} ,{down} ,{up} ,{up}},
+        {{up} ,{down} ,{down} ,{up}},
+        {{up} ,{up} ,{down} ,{up}},
+        {{up} ,{down} ,{down} ,{up}},
+        {{up} ,{down} ,{down} ,{up}},
+        {{up} ,{down} ,{down} ,{up}},
+    };
+protected:
+    //地图四个角实际分辨率坐标
+    int mapangle[4][2] =
+    {
+        {280,248},
+        {1001,248},
+        {340,532},
+        {949,532}
+    };
+    //移动坐标点数组（实际像素坐标）
+    Vec2 positionArray[maxpositionarray] = { Vec2(1014,342),Vec2(748,436), Vec2(534,436), Vec2(528,342), Vec2(300,342), Vec2(320,436), Vec2(213,436) };
+    //路线所属格子xy坐标
+    Vec2 positionXYArray[maxpositionarray] = { Vec2(7,1), Vec2(4,2), Vec2(2,2), Vec2(2,1), Vec2(0,1), Vec2(0,2), Vec2(-1,2), };
 
 };
 
@@ -118,6 +157,7 @@ public:
     CREATE_FUNC(MapScene3);
     void update(float dt);
 
+    void mapOccupyUpdate(EventCustom* event);
     void updateGanranzhegaojijiuchaguan1(float dt);
     void updateGanranzhegaojijiuchaguan2(float dt);
     void updateGanranzhegaojijiuchaguan3(float dt);

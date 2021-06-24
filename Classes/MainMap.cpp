@@ -1,6 +1,7 @@
 #include "cocos2d.h"
 #include "MainMap.h"
 #include "MapScene.h"
+#include "AudioEngine.h"
 USING_NS_CC;
 
 static void problemLoading(const char* filename)
@@ -35,6 +36,8 @@ MainMap::MainMap()
 	auto mainMap = Menu::create(startMap1, startMap2, startMap3, NULL);
 	mainMap->setPosition(Vec2(origin.x, origin.y));
 	this->addChild(mainMap);
+
+	AudioEngine::play2d("mainmap.mp3", true, 0.5f);
 }
 
 MainMap::~MainMap()
@@ -52,18 +55,24 @@ bool MainMap::init()
 
 void MainMap::menuCallbackForSrartMap1(Ref* pSender)
 {
+	AudioEngine::stopAll();
 	auto mapScene1 = MapScene1::create();
 	Director::getInstance()->pushScene(mapScene1);
+	AudioEngine::play2d("0-1.mp3", false, 0.5f);
 }
 
 void MainMap::menuCallbackForSrartMap2(Ref* pSender)
 {
-	//auto mapScene2 = MapScene1::create();
-	//Director::getInstance()->pushScene(mapScene2);
+	AudioEngine::stopAll();
+	auto mapScene2 = MapScene2::create();
+	Director::getInstance()->pushScene(mapScene2);
+	AudioEngine::play2d("H0-1.mp3", false, 0.5f);
 }
 
 void MainMap::menuCallbackForSrartMap3(Ref* pSender)
 {
+	AudioEngine::stopAll();
 	auto mapScene3 = MapScene3::create();
 	Director::getInstance()->pushScene(mapScene3);
+	AudioEngine::play2d("WD-EX-8.mp3",false,0.5f);
 }

@@ -66,8 +66,9 @@ public:
 	void getIsBlockedBy(Employee* p);
 	virtual void attrackBlocked();
 	void attrackSelected(Employee* p);
-	
+		
 	void idleForInterval(float ddt);
+	void zorderUpdate(float dt);
 	void movingAttrackUpdate(float dt);
 	void bloodUpdate(float dt);
 	void positionUpdate(float dt);

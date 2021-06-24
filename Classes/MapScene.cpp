@@ -121,10 +121,25 @@ bool MapScene::init()
     cLabel->setPosition(Vec2(origin.x + visibleSize.width - C->getContentSize().width/2.0f, origin.y + visibleSize.height / 5.0f));
     this->addChild(cLabel, 496,102);
 
-    
-    
-
     schedule(CC_SCHEDULE_SELECTOR(MapScene::cUpdate), 1.0f);
+    //地图占据情况更新
+    //auto _mapOccupyCustom = EventListenerCustom::create("mapOccupyUpdate", CC_CALLBACK_1(MapScene::mapOccupyUpdate, this));
+    //_eventDispatcher->addEventListenerWithSceneGraphPriority(_mapOccupyCustom, this);
+        
+    //剩余放置数显示
+    auto remainNum = Sprite::create("remainnumber.png");
+    remainNum->setAnchorPoint(Vec2(1, 0));
+    remainNum->setPosition(Vec2(origin.x + visibleSize.width, origin.y + visibleSize.height / 5.0f- remainNum->getContentSize().height*1.2f));
+    remainNum->setOpacity(200);
+    this->addChild(remainNum, 495);
+
+    std::string remainNuml = std::to_string(remainPuttingNumber);
+    auto remainNumLabel = Label::createWithTTF(remainNuml, "fonts/arial.ttf", 20);
+    remainNumLabel->setAnchorPoint(Vec2(1, 0));
+    remainNumLabel->setPosition(remainNum->getPosition()-Vec2(13.f,0));
+    this->addChild(remainNumLabel, 496, 71);
+
+    schedule(CC_SCHEDULE_SELECTOR(MapScene::remainPuttingNumUpdate), 1.0f);
 
     return true;
 }
@@ -148,6 +163,7 @@ void MapScene::topUpdate1(EventCustom* event)
 }
 void MapScene::topUpdate2(EventCustom* event)
 {
+    AudioEngine::play2d("danger.mp3");
     remainDefendNumber--;
     killedNumber++;
     auto visibleSize = Director::getInstance()->getVisibleSize();
@@ -170,6 +186,23 @@ void MapScene::topUpdate2(EventCustom* event)
     this->addChild(enemyTotalLabel, 496, 101);
 }
 
+void MapScene::remainPuttingNumUpdate(float dt)
+{
+    this->removeChildByTag(71);
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    auto remainNum = Sprite::create("remainnumber.png");
+    remainNum->setAnchorPoint(Vec2(1, 0));
+    remainNum->setPosition(Vec2(origin.x + visibleSize.width, origin.y + visibleSize.height / 5.0f - remainNum->getContentSize().height * 1.2f));
+    remainNum->setOpacity(200);
+    this->addChild(remainNum, 495);
+
+    std::string remainNuml = std::to_string(remainPuttingNumber);
+    auto remainNumLabel = Label::createWithTTF(remainNuml, "fonts/arial.ttf", 20);
+    remainNumLabel->setAnchorPoint(Vec2(1, 0));
+    remainNumLabel->setPosition(remainNum->getPosition() - Vec2(13.f, 0));
+    this->addChild(remainNumLabel, 496, 71);
+}
 void MapScene::cUpdate(float dt)
 {
     if (c < 99)
@@ -192,20 +225,64 @@ void MapScene::update(float dt)
         MapInformation::getInstance()->eraseAll();
         auto pScheduler = Director::getInstance()->getScheduler();
         pScheduler->setTimeScale(1.0f);
+        unscheduleAllCallbacks();
+        AudioEngine::stopAll();
+
+        this->removeAllChildren();
+        this->unscheduleAllCallbacks();
+        auto lose = Sprite::create("lose.png");
+        lose->setAnchorPoint(Vec2::ZERO);
+        lose->setPosition(Vec2::ZERO);
+        this->addChild(lose);
+
+        auto listener0 = EventListenerTouchOneByOne::create();
+        listener0->setSwallowTouches(true);
+        listener0->onTouchBegan = [=](Touch* touch, Event* event) {return true; };
+        listener0->onTouchEnded = [this](Touch* touch, Event* event) {
+            AudioEngine::play2d("mainmap.mp3", true, 0.5f);
+            Director::getInstance()->popScene();
+        };
+        _eventDispatcher->addEventListenerWithSceneGraphPriority(listener0, lose);
         /***********失败场景***********/
-        Director::getInstance()->popScene();
+        //Director::getInstance()->popScene();
     }
     if (killedNumber == enemyTotalNember)
     {
         MapInformation::getInstance()->eraseAll();
         auto pScheduler = Director::getInstance()->getScheduler();
         pScheduler->setTimeScale(1.0f);
+        unscheduleAllCallbacks();
+        AudioEngine::stopAll();
+
+        this->removeAllChildren();
+        this->unscheduleAllCallbacks();
+        auto win = Sprite::create("win.png");
+        win->setAnchorPoint(Vec2(0, 0.5f));
+        win->setPosition(Vec2(0, 360.f));
+        this->addChild(win);
+
+        auto listener0 = EventListenerTouchOneByOne::create();
+        listener0->setSwallowTouches(true);
+        listener0->onTouchBegan = [=](Touch* touch, Event* event) {return true; };
+        listener0->onTouchEnded = [this](Touch* touch, Event* event) {
+            AudioEngine::play2d("mainmap.mp3", true, 0.5f);
+            Director::getInstance()->popScene();
+        };
+        _eventDispatcher->addEventListenerWithSceneGraphPriority(listener0, win);
         /***********胜利场景***********/
-        Director::getInstance()->popScene();
+        //Director::getInstance()->popScene();
     }
 }
 
 
+
+void MapScene1::mapOccupyUpdate(EventCustom* event)
+{
+    for (auto u : map)
+        u->isOccupyed = false;
+    for (auto employee0 : MapInformation::getInstance()->allEmployeeInMap)
+        map[static_cast<int>(employee0->getPositionXY().x)][static_cast<int>(employee0->getPositionXY().y)].isOccupyed = true;
+}
 
 void MapScene1::mapinit(int mapangle[4][2])
 {
@@ -216,12 +293,13 @@ void MapScene1::mapinit(int mapangle[4][2])
 
 void MapScene::mapCloseCallback(cocos2d::Ref* pSender)
 {
+    AudioEngine::stopAll();
     MapInformation::getInstance()->eraseAll();
     auto pScheduler = Director::getInstance()->getScheduler();
     pScheduler->setTimeScale(1.0f);
     //Close the cocos2d-x game scene and quit the application
     Director::getInstance()->popScene();
-
+    AudioEngine::play2d("mainmap.mp3", true, 0.5f);
     /*To navigate back to native iOS screen(if present) without quitting the application  ,do not use Director::getInstance()->end() as given above,instead trigger a custom event created in RootViewController.mm as below*/
 
     //EventCustom customEndEvent("game_scene_close_event");
@@ -266,13 +344,13 @@ Scene* MapScene1::createScene()
 }
 
 bool MapScene1::init()
-{
-    
+{   
     /**************基础数据初始化**************/
     mapinit(mapangle);
     enemyTotalNember = 11;
+    remainDefendNumber = 20;
     cSpeed = 1;
-    c = 0;
+    c = 10;
     X_MAX = 7;
     Y_MAX = 4;
     /******************************************/
@@ -368,6 +446,184 @@ void MapScene1::updateShibing(float dt)
 
 
 
+void MapScene2::mapOccupyUpdate(EventCustom* event)
+{
+    for (auto u : map)
+        u->isOccupyed = false;
+    for (auto employee0 : MapInformation::getInstance()->allEmployeeInMap)
+        map[static_cast<int>(employee0->getPositionXY().x)][static_cast<int>(employee0->getPositionXY().y)].isOccupyed = true;
+}
+
+void MapScene2::mapinit(int mapangle[4][2])
+{
+    for (int x = 0; x < 7; x++)
+        for (int y = 0; y < 4; y++)
+            map[x][y].position = Vec2(static_cast<float>(mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 3 * y + ((mapangle[1][0] - (mapangle[1][0] - mapangle[3][0]) / 3 * y) - (mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 3 * y)) / 6 * x), static_cast<float>(mapangle[0][1] + (mapangle[2][1] - mapangle[0][1]) / 3 * y));
+}
+
+Scene* MapScene2::createScene()
+{
+    return MapScene2::create();
+}
+
+bool MapScene2::init()
+{
+    /**************基础数据初始化**************/
+    mapinit(mapangle);
+    enemyTotalNember = 200;
+    remainDefendNumber = 1;
+    cSpeed = 2;
+    c = 50;
+    X_MAX = 7;
+    Y_MAX = 4;
+    /******************************************/
+    if (!MapScene::init())
+    {
+        return false;
+    }
+
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
+    auto Map1 = Sprite::create("Map1Scene1.png");
+    if (Map1 == nullptr)
+    {
+        problemLoading("'Map1Scene1.png'");
+    }
+    else
+    {
+        Map1->setAnchorPoint(Vec2::ZERO);
+        Map1->setPosition(Vec2(origin.x, origin.y));
+
+        // add the sprite as a child to this layer
+        this->addChild(Map1, 0);
+    }
+
+    //放置干员层
+    auto employeePuttingLayer = Layer::create();
+    float time[11] = { 56.7f, 56.7f ,56.7f,56.7f,56.7f,56.7f,53.1f,56.7f,56.7f,53.1f,53.1f };
+    int fee[11] = { 20,22,22,21,24,20,19,17,14,12,8 };
+    int positionType[11] = { up, down , down, down, down,up,down,up,up,down,down };
+    for (int i = 1; i <= 11; i++)
+    {
+        auto list = employeeList<MapScene2>::createSprite(StringUtils::format(".\\employeelist\\%d.png", i).c_str(), i, time[i - 1], fee[i - 1], positionType[i - 1], this);
+        list->setAnchorPoint(Vec2::ZERO);
+        list->setPosition(Vec2(origin.x + visibleSize.width - list->getContentSize().width * i, origin.y));
+        employeePuttingLayer->addChild(list, 0, i);
+        //MapInformation::getInstance()->addList(list);
+    }
+    this->addChild(employeePuttingLayer, 490, 103);
+
+    for (int i = 0; i < 50; i++)
+    {
+        MapInformation::getInstance()->addEnemy(YUANSHICHONG, left, positionArray, positionXYArray);
+    }
+    for (int i = 50; i < 100; i++)
+    {
+        MapInformation::getInstance()->addEnemy(SHIBING, left, positionArray, positionXYArray);
+    }
+    for (int i = 100; i < 150; i++)
+    {
+        MapInformation::getInstance()->addEnemy(GANRANZHEGAOJIJIUCHAGUAN, left, positionArray, positionXYArray);
+    }
+    for (int i = 150; i < 190; i++)
+    {
+        MapInformation::getInstance()->addEnemy(WUSASILIESHOUZUMU, left, positionArray, positionXYArray);
+    }
+    for (int i = 190; i < 195; i++)
+    {
+        MapInformation::getInstance()->addEnemy(WUSASIGAOJIZHUOKAISHUSHI, left, positionArray, positionXYArray);
+    }
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, left, positionArray, positionXYArray);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, left, positionArray, positionXYArray);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, left, positionArray, positionXYArray);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, left, positionArray, positionXYArray);
+    MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, left, positionArray, positionXYArray);
+
+
+    schedule(CC_SCHEDULE_SELECTOR(MapScene2::updateYuanshichong), 0.8f, 49, 4.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene2::updateShibing), 0.8f, 49, 44.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene2::updateGanranzhegaojijiuchaguan), 0.8f, 49, 84.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene2::updateWusasilieshouzumu), 0.8f, 39, 124.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene2::updateWusasigaojizhuokaishushi), 0.8f, 4, 156.0f);
+    schedule(CC_SCHEDULE_SELECTOR(MapScene2::updateJingrui), 0.8f, 4, 160.0f);
+
+
+    scheduleUpdate();
+
+    return true;
+}
+
+void MapScene2::update(float dt)
+{
+    MapScene::update(dt);
+
+}
+
+void MapScene2::updateYuanshichong(float dt)
+{
+    static int num = 0;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 50)
+        num = 0;
+}
+
+void MapScene2::updateShibing(float dt)
+{
+    static int num = 50;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 100)
+        num = 50;
+}
+
+void MapScene2::updateGanranzhegaojijiuchaguan(float dt)
+{
+    static int num = 100;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 150)
+        num = 100;
+}
+
+void MapScene2::updateWusasilieshouzumu(float dt)
+{
+    static int num = 150;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 190)
+        num = 150;
+}
+
+void MapScene2::updateWusasigaojizhuokaishushi(float dt)
+{
+    static int num = 190;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 195)
+        num = 190;
+}
+
+void MapScene2::updateJingrui(float dt)
+{
+    static int num = 195;
+    MapInformation::getInstance()->allEnemyInMap.at(num)->setIsadded(true);
+    this->addChild(MapInformation::getInstance()->allEnemyInMap.at(num));
+    num += 1;
+    if (num == 200)
+        num = 195;
+}
+
+
+
+
+
 Scene* MapScene3::createScene()
 {
     return MapScene3::create();
@@ -380,14 +636,21 @@ void MapScene3::mapinit(int mapangle[4][2])
             map[x][y].position = Vec2(static_cast<float>(mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y + ((mapangle[1][0] - (mapangle[1][0] - mapangle[3][0]) / 7.f * y) - (mapangle[0][0] + (mapangle[2][0] - mapangle[0][0]) / 7.f * y)) / 10.f * x), static_cast<float>(mapangle[0][1] + (mapangle[2][1] - mapangle[0][1]) / 5.9f * y));
 }
 
-bool MapScene3::init()
+void MapScene3::mapOccupyUpdate(EventCustom* event)
 {
+    for (auto u : map)
+        u->isOccupyed = false;
+    for (auto employee0 : MapInformation::getInstance()->allEmployeeInMap)
+        map[static_cast<int>(employee0->getPositionXY().x)][static_cast<int>(employee0->getPositionXY().y)].isOccupyed = true;
+}
 
+bool MapScene3::init()
+{    
     /**************基础数据初始化**************/
     mapinit(mapangle);
     enemyTotalNember = 45;
     cSpeed = 1;
-    c = 80;//11
+    c = 15;
     X_MAX = 11;
     Y_MAX = 8;
     /******************************************/
@@ -479,7 +742,7 @@ bool MapScene3::init()
     
 
     MapInformation::getInstance()->addEnemy(WUSASIGAOJIZHUOKAISHUSHI, left, positionArray2, positionXYArray2, interval2);
-    MapInformation::getInstance()->addEnemy(WUSASIGAOJIZHUOKAISHUSHI, right, positionArray6, positionXYArray6, interval2);
+    MapInformation::getInstance()->addEnemy(WUSASIGAOJIZHUOKAISHUSHI, right, positionArray3, positionXYArray3, interval2);
     MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, left, positionArray4, positionXYArray4, interval3);
     MapInformation::getInstance()->addEnemy(DIGUOQIANFENGJINGRUI, right, positionArray5, positionXYArray5, interval3);
     scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateShushi12Jingrui12), 99.0f);
@@ -505,7 +768,7 @@ bool MapScene3::init()
     scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateWusasilieshouzumu12), 118.0f);
 
     MapInformation::getInstance()->addEnemy(DIGUOPAOHUOZHONGSHUXIANZHAOZHE, right, positionArray7, positionXYArray7,interval7);
-    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateDiguopaohuozhongshuxianzhaozhe), 120.0f);
+    scheduleOnce(CC_SCHEDULE_SELECTOR(MapScene3::updateDiguopaohuozhongshuxianzhaozhe), 110.0f);
 
     MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, right, positionArray3, positionXYArray3,interval10);
     MapInformation::getInstance()->addEnemy(DIGUOQIANFENGBAIZHANJINGRUI, left, positionArray4, positionXYArray4, interval10);

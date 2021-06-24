@@ -105,6 +105,9 @@ bool employeeList<T>::initWithFile(const char* filename)
             Rect(this->getPosition().x, this->getPosition().y, 
                 this->getContentSize().width, this->getContentSize().height).containsPoint(touch->getLocation()))
         {
+            auto pScheduler = Director::getInstance()->getScheduler();
+            pScheduler->setTimeScale(pScheduler->getTimeScale() / 10);
+            
             auto target = static_cast<employeeList*>(event->getCurrentTarget());
             auto p = Sprite::create(StringUtils::format(".\\employeelist\\selected%d.png", type).c_str());
             target->setTexture(p->getTexture());
@@ -146,6 +149,8 @@ bool employeeList<T>::initWithFile(const char* filename)
         }
         else
         {            
+            auto pScheduler = Director::getInstance()->getScheduler();
+            pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
             deletePuttingPosition();
         }
         auto p = Sprite::create(StringUtils::format(".\\employeelist\\%d.png", type).c_str());
@@ -320,6 +325,7 @@ template<class T>
 void employeeList<T>::employeeCreate(int direction0, Vec2 position, Vec2 positionXY)
 {
     auto mapscene = dynamic_cast<T*>(dynamic_cast<Layer*>(this->getParent())->getParent());
+    //mapscene->map[static_cast<int>(positionXY.x)][static_cast<int>(positionXY.y)].isOccupyed = true;
     switch (this->type)
     {
         case aiyafala: {
@@ -430,6 +436,9 @@ void employeeList<T>::reputUpdate(float dt)
 template<class T>
 void employeeList<T>::frontChooseCallback(cocos2d::Ref* pSender)
 {
+    auto pScheduler = Director::getInstance()->getScheduler();
+    pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+    
     auto puttingLayer = dynamic_cast<Layer*>(this->getParent());
     puttingLayer->removeChildByTag(100);    
     puttingLayer->removeChildByTag(102);
@@ -445,6 +454,9 @@ void employeeList<T>::frontChooseCallback(cocos2d::Ref* pSender)
 template<class T>
 void employeeList<T>::backChooseCallback(cocos2d::Ref* pSender)
 {
+    auto pScheduler = Director::getInstance()->getScheduler();
+    pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+    
     auto puttingLayer = dynamic_cast<Layer*>(this->getParent());
     puttingLayer->removeChildByTag(100);
     puttingLayer->removeChildByTag(102);
@@ -460,6 +472,9 @@ void employeeList<T>::backChooseCallback(cocos2d::Ref* pSender)
 template<class T>
 void employeeList<T>::leftChooseCallback(cocos2d::Ref* pSender)
 {
+    auto pScheduler = Director::getInstance()->getScheduler();
+    pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+    
     auto puttingLayer = dynamic_cast<Layer*>(this->getParent());
     puttingLayer->removeChildByTag(100);
     puttingLayer->removeChildByTag(102);
@@ -475,6 +490,9 @@ void employeeList<T>::leftChooseCallback(cocos2d::Ref* pSender)
 template<class T>
 void employeeList<T>::rightChooseCallback(cocos2d::Ref* pSender)
 {
+    auto pScheduler = Director::getInstance()->getScheduler();
+    pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+    
     auto puttingLayer = dynamic_cast<Layer*>(this->getParent());
     puttingLayer->removeChildByTag(100);
     puttingLayer->removeChildByTag(102);
@@ -490,6 +508,9 @@ void employeeList<T>::rightChooseCallback(cocos2d::Ref* pSender)
 template<class T>
 void employeeList<T>::giveupChooseCallback(cocos2d::Ref* pSender)
 {
+    auto pScheduler = Director::getInstance()->getScheduler();
+    pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+    
     auto puttingLayer = dynamic_cast<Layer*>(this->getParent());
     puttingLayer->removeChildByTag(100);
     puttingLayer->removeChildByTag(101);

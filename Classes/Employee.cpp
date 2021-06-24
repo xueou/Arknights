@@ -12,6 +12,12 @@ bool Employee::initWithFile(const char* filename)
     setLastState(employeeStateNone);
     setPresentState(employeeStateStart);
 
+    auto skillready = Sprite::create("skillready.png");
+    skillready->setPosition(Vec2(150.f, 185.f));
+    skillready->setOpacity(0);
+    this->addChild(skillready,0,65);
+    schedule(CC_SCHEDULE_SELECTOR(Employee::skillReadyShowing), 1.0f);
+
     loadingBlood();
     loadingSP();
     schedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate),1.0f);
@@ -200,9 +206,15 @@ Animation* Employee::createAnimate(int direction, const char* name, const char* 
     return animation;
 }
 
+void Employee::attackAnimate()
+{
+
+}
+
 void Employee::attrackSelectedEnemy()
 {
     AudioEngine::play2d(".\\employee\\"+name+"\\attackeffect.mp3");
+    attackAnimate();
     if ((attrackRange != DANNAI) && (attrackRange != QUNNAI))//医疗干员特判
     {
         for (Enemy* p : this->selectedEnemy)
@@ -472,15 +484,17 @@ int Employee::getEmployeeListType()                /***************记得补全*****
         return 10;
     else if (name == "taojinniang")
         return 11;
+    else
+        return NULL;
 }
-/**********************************菜单状态下的死亡处理*****************************************/
+
 void Employee::addSkillList()
 {
     auto p = Sprite::create("greensquare.png");
     p->setAnchorPoint(Vec2(0.5f, 0.5f));
     p->setOpacity(0);
     p->setPosition(Vec2::ZERO);
-    this->addChild(p);
+    this->addChild(p,0,81);
 
     auto _addSkillListListener = EventListenerTouchOneByOne::create();
     _addSkillListListener->setSwallowTouches(true);
@@ -499,6 +513,9 @@ void Employee::addSkillList()
         if (Rect(this->getPosition().x - m->getContentSize().width / 2.0f, this->getPosition().y - m->getContentSize().height / 2.0f,
             m->getContentSize().width, m->getContentSize().height).containsPoint(touch->getLocation()))
         {
+            auto pScheduler = Director::getInstance()->getScheduler();
+            pScheduler->setTimeScale(pScheduler->getTimeScale() / 10);
+            
             auto visibleSize = Director::getInstance()->getVisibleSize();
             auto map = dynamic_cast<MapScene*>(this->getParent());
             
@@ -508,6 +525,9 @@ void Employee::addSkillList()
             listener0->setSwallowTouches(true);
             listener0->onTouchBegan = [=](Touch* touch, Event* event) {return true; };
             listener0->onTouchEnded = [this](Touch* touch, Event* event) {
+                auto pScheduler = Director::getInstance()->getScheduler();
+                pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+                
                 auto map= dynamic_cast<MapScene*>(this->getParent());
                 unschedule(CC_SCHEDULE_SELECTOR(Employee::skillButtonUpdate));
                 map->removeChildByTag(200);
@@ -549,6 +569,9 @@ void Employee::addSkillList()
                     return false;
             };
             listener2->onTouchEnded = [this](Touch* touch, Event* event) {
+                auto pScheduler = Director::getInstance()->getScheduler();
+                pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+                
                 auto map = dynamic_cast<MapScene*>(this->getParent());
                 unschedule(CC_SCHEDULE_SELECTOR(Employee::skillButtonUpdate));
                 map->removeChildByTag(200);
@@ -594,6 +617,9 @@ void Employee::addSkillList()
                     return false;
             };
             listener3->onTouchEnded = [this](Touch* touch, Event* event) {
+                auto pScheduler = Director::getInstance()->getScheduler();
+                pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+                
                 auto map = dynamic_cast<MapScene*>(this->getParent());
                 unschedule(CC_SCHEDULE_SELECTOR(Employee::skillButtonUpdate));
                 map->removeChildByTag(200);
@@ -620,6 +646,38 @@ void Employee::addSkillList()
         }
     };
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_addSkillListListener, p);
+}
+
+void Employee::releaseSkillList()
+{
+    this->removeChildByTag(81);
+    auto map = dynamic_cast<MapScene*>(this->getParent());
+    if (map->getChildByTag(200) != nullptr)
+    {
+        auto pScheduler = Director::getInstance()->getScheduler();
+        pScheduler->setTimeScale(pScheduler->getTimeScale() * 10);
+        
+        unschedule(CC_SCHEDULE_SELECTOR(Employee::skillButtonUpdate));
+        map->removeChildByTag(200);
+        map->removeChildByTag(201);
+        map->removeChildByTag(202);
+        map->removeChildByTag(203);
+        map->removeChildByTag(204);
+    }
+}
+
+void Employee::skillReadyShowing(float dt)
+{
+    if (sp == spMAX)
+    {
+        auto skillready = this->getChildByTag(65);
+        skillready->setOpacity(255);
+    }
+    else
+    {
+        auto skillready = this->getChildByTag(65);
+        skillready->setOpacity(0);
+    }
 }
 
 void Employee::spUpdate(float dt)
@@ -726,6 +784,8 @@ void Employee::update(float dt)
                 _eventDispatcher->addEventListenerWithSceneGraphPriority(_employeeStateAttackListener, this);*/ }
                 break;            
             case employeeStateDie: {
+                AudioEngine::play2d("die.mp3");
+                this->releaseSkillList();
                 this->stopAllActions();
                 //_eventDispatcher->remove
                 //ValueMap info;
@@ -738,6 +798,9 @@ void Employee::update(float dt)
                     this->releaseAnimation();
                     this->removeFromParent();
                     
+                    //auto mapOccupyUpdate = "mapOccupyUpdate";
+                    //Director::getInstance()->getEventDispatcher()->dispatchCustomEvent("mapOccupyUpdate", static_cast<void*>(&mapOccupyUpdate));
+
                     auto puttingLayer = static_cast<Layer*>(map->getChildByTag(103));
                     auto employeelist = static_cast<employeeList<MapScene>*>(puttingLayer->getChildByTag(getEmployeeListType()));
 
@@ -746,6 +809,7 @@ void Employee::update(float dt)
                     employeelist->reputtingLoading();
 
                     releaseAllBlockedEnemy();//释放阻挡敌人
+                    //this->releaseSkillList();
 
                     employeelist->setOpacity(100);
                     employeelist->setIsadded(false);
@@ -824,11 +888,28 @@ Aiyafala* Aiyafala::createSprite(const char* filename, int direction0, Vec2 posi
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
-    
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
+
     p->initSkillAnimation();
     p->addSkillList();
 
     return p;
+}
+
+void Aiyafala::attackAnimate()
+{
+    /*auto m = Sprite::create(".\\employee\\aiyafala\\attackeffect1 (1).png");
+    auto effect0 = Animate::create(attackeffect);
+    auto callback = CallFunc::create([m]() {
+        m->removeFromParent();
+        });
+    auto effect = Sequence::create(effect0, callback, nullptr);
+    for (auto enemy0 : selectedEnemy)
+    {
+        enemy0->addChild(m,10);
+        m->setPosition(enemy0->getContentSize().width / 2, enemy0->getContentSize().height / 3);
+    }
+    m->runAction(effect);*/
 }
 
 void Aiyafala::initSkillAnimation()
@@ -845,6 +926,9 @@ void Aiyafala::initSkillAnimation()
     duringskill2->retain();
     afterskill1->retain();
     afterskill2->retain();
+
+    this->attackeffect = Employee::createAnimate(1, name.c_str(), "attackeffect", 4, 1, 0.1f);
+    attackeffect->retain();
 }
 
 void Aiyafala::skill()
@@ -886,7 +970,7 @@ void Aiyafala::skillAttrackUpdate(float dt)
 {
     if (searchEnemyByType(huoshan, huoshanRange))
     {
-        AudioEngine::play2d(".\\employee\\aiyafala\\skillattrackeffect.mp3");
+        AudioEngine::play2d(".\\employee\\aiyafala\\skillattackeffect.mp3");
         attrackSelectedEnemy();
     }
 }
@@ -895,6 +979,8 @@ void Aiyafala::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -910,6 +996,7 @@ void Aiyafala::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -954,6 +1041,8 @@ void Aiyafala::releaseSkillAnimation()
     duringskill2->release();
     afterskill1->release();
     afterskill2->release();
+
+    attackeffect->release();
 }
 
 
@@ -1013,6 +1102,7 @@ Xingxiong* Xingxiong::createSprite(const char* filename, int direction0, Vec2 po
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -1038,6 +1128,7 @@ void Xingxiong::initSkillAnimation()
 
 void Xingxiong::skill()
 {
+    AudioEngine::play2d(".\\employee\\xingxiong\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unscheduleUpdate();
@@ -1073,13 +1164,18 @@ void Xingxiong::skillSPUpdate(float dt)
 void Xingxiong::skillAttrackUpdate(float dt)
 {
     if (searchEnemyByType(lizhiju[direction0], lizhijuRange))
+    {
+        AudioEngine::play2d(".\\employee\\xingxiong\\skillattackeffect.mp3");
         attrackSelectedEnemy();
+    }
 }
 
 void Xingxiong::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -1095,6 +1191,7 @@ void Xingxiong::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -1198,6 +1295,7 @@ Saileiya* Saileiya::createSprite(const char* filename, int direction0, Vec2 posi
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -1215,6 +1313,7 @@ void Saileiya::initSkillAnimation()
 
 void Saileiya::skill()
 {
+    AudioEngine::play2d(".\\employee\\saileiya\\skilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Saileiya::skillTouchAuto));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
@@ -1269,6 +1368,8 @@ void Saileiya::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -1284,6 +1385,7 @@ void Saileiya::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -1378,6 +1480,7 @@ Shierteer* Shierteer::createSprite(const char* filename, int direction0, Vec2 po
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -1397,6 +1500,7 @@ void Shierteer::releaseSkillAnimation()
 
 void Shierteer::skill()
 {
+    AudioEngine::play2d(".\\employee\\shierteer\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     //unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
@@ -1534,6 +1638,7 @@ Huang* Huang::createSprite(const char* filename, int direction0, Vec2 position, 
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -1551,6 +1656,7 @@ void Huang::initSkillAnimation()
 
 void Huang::skill()
 {
+    AudioEngine::play2d(".\\employee\\huang\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Huang::skillTouchAuto));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
@@ -1696,6 +1802,7 @@ Shanling* Shanling::createSprite(const char* filename, int direction0, Vec2 posi
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -1710,6 +1817,7 @@ void Shanling::initSkillAnimation()
 
 void Shanling::skill()
 {
+    AudioEngine::play2d(".\\employee\\shanling\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     //unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     //unscheduleUpdate();
@@ -1804,6 +1912,7 @@ Yinhui* Yinhui::createSprite(const char* filename, int direction0, Vec2 position
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -1821,6 +1930,7 @@ void Yinhui::initSkillAnimation()
 
 void Yinhui::skill()
 {
+    AudioEngine::play2d(".\\employee\\yinhui\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unscheduleUpdate();
@@ -1853,13 +1963,18 @@ void Yinhui::skillSPUpdate(float dt)
 void Yinhui::skillAttrackUpdate(float dt)
 {
     if (searchEnemyByType(zhenyinzhan[direction0], zhenyinzhanRange))
+    {
+        AudioEngine::play2d(".\\employee\\yinhui\\skillattackeffect.mp3");
         attrackSelectedEnemy();
+    }
 }
 
 void Yinhui::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -1875,6 +1990,7 @@ void Yinhui::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -1974,6 +2090,7 @@ Baimianxiao* Baimianxiao::createSprite(const char* filename, int direction0, Vec
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -1991,6 +2108,7 @@ void Baimianxiao::initSkillAnimation()
 
 void Baimianxiao::skill()
 {
+    AudioEngine::play2d(".\\employee\\baimianxiao\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unscheduleUpdate();
@@ -2022,13 +2140,18 @@ void Baimianxiao::skillSPUpdate(float dt)
 void Baimianxiao::skillAttrackUpdate(float dt)
 {
     if (searchEnemyByType(naofeitai[direction0], naofeitaiRange))
+    {
+        AudioEngine::play2d(".\\employee\\baimianxiao\\skillattackeffect.mp3");
         attrackSelectedEnemy();
+    }
 }
 
 void Baimianxiao::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -2044,6 +2167,7 @@ void Baimianxiao::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -2142,6 +2266,7 @@ Nengtianshi* Nengtianshi::createSprite(const char* filename, int direction0, Vec
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -2159,6 +2284,7 @@ void Nengtianshi::initSkillAnimation()
 
 void Nengtianshi::skill()
 {
+    AudioEngine::play2d(".\\employee\\nengtianshi\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Nengtianshi::skillTouchAuto));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
@@ -2200,6 +2326,7 @@ void Nengtianshi::skillAttrackUpdate(float dt)
 {
     if (searchEnemyByType(suju[direction0], sujuRange))
     {
+        AudioEngine::play2d(".\\employee\\nengtianshi\\skillattackeffect.mp3");
         attrackSelectedEnemy();
         attrackSelectedEnemy();
         attrackSelectedEnemy();
@@ -2212,6 +2339,8 @@ void Nengtianshi::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -2227,6 +2356,7 @@ void Nengtianshi::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -2322,6 +2452,7 @@ Dekesasi* Dekesasi::createSprite(const char* filename, int direction0, Vec2 posi
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -2339,6 +2470,7 @@ void Dekesasi::initSkillAnimation()
 
 void Dekesasi::skill()
 {
+    AudioEngine::play2d(".\\employee\\dekesasi\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unscheduleUpdate();
@@ -2386,6 +2518,8 @@ void Dekesasi::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -2401,6 +2535,7 @@ void Dekesasi::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
@@ -2498,6 +2633,7 @@ Taojinniang* Taojinniang::createSprite(const char* filename, int direction0, Vec
     p->setDirection0(direction0);
     p->setPosition(Vec2(origin.x, origin.y) + position);
     p->positionXY = positionXY;
+    p->setLocalZOrder((750 - static_cast<int>(p->getPosition().y)) / 3);
 
     p->initSkillAnimation();
     p->addSkillList();
@@ -2519,6 +2655,7 @@ void Taojinniang::initSkillAnimation()
 
 void Taojinniang::skill()
 {
+    AudioEngine::play2d(".\\employee\\taojinniang\\beforeskilleffect.mp3");
     unschedule(CC_SCHEDULE_SELECTOR(Employee::spIncreaseUpdate));
     unschedule(CC_SCHEDULE_SELECTOR(Employee::stateUpdate));
     unscheduleUpdate();
@@ -2560,6 +2697,8 @@ void Taojinniang::skillHealthUpdate(float dt)
 {
     if (health <= 0)
     {
+        AudioEngine::play2d("die.mp3");
+        this->releaseSkillList();
         this->stopAllActions();
         auto animation = Animate::create((direction0 == left || direction0 == front) ? (die1) : (die2));
         auto callbackDie = CallFunc::create([this]() {
@@ -2575,6 +2714,7 @@ void Taojinniang::skillHealthUpdate(float dt)
             employeelist->reputtingLoading();
 
             releaseAllBlockedEnemy();//释放阻挡敌人
+            //this->releaseSkillList();
 
             employeelist->setOpacity(100);
             employeelist->setIsadded(false);
